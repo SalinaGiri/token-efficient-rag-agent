@@ -1,0 +1,6 @@
+variant,input_tokens,output_tokens,ttft_s,latency_s,correct_pct,citation_precision_pct,abstention_acc_pct,tcca,placeholder
+V0 Baseline,6000,280,1.10,6.20,70,78,43,9400,yes
+V1 Adaptive retrieval,1400,270,0.45,5.30,72,85,86,2300,yes
+V2 Output budget,6000,90,1.10,2.40,69,80,43,9200,yes
+V3 Optimised,1400,85,0.45,1.80,73,86,86,2100,yes
+VO Oracle,700,80,0.35,1.60,85,95,100,950,yes
