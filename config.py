@@ -15,7 +15,7 @@ PASSAGE_TOKENS = 250          # target passage size (approximate tokens)
 
 # ---------- The LLM under test (local, via Ollama) ----------
 OLLAMA_URL = "http://localhost:11434"
-LLM_MODEL = "llama3.1:8b"     # set to the exact model you pulled with `ollama pull`
+LLM_MODEL = "modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M"
 THINK = None                  # set to False for "thinking" models (e.g. qwen3) to switch thinking off
 NUM_CTX = 16384               # context window; must fit the baseline prompts
 SEED = 0
