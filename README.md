@@ -1,5 +1,7 @@
 # Fewer, Better Tokens
 
+[![tests](https://github.com/SalinaGiri/token-efficient-rag-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/SalinaGiri/token-efficient-rag-agent/actions/workflows/tests.yml)
+
 A small experiment on **token-efficient retrieval-augmented generation (RAG)** for an operational knowledge
 assistant. A baseline agent is compared with token-optimised variants on 40 questions about the Kubernetes
 troubleshooting documentation. The comparison covers tokens, latency (split into prefill and decode),
