@@ -23,6 +23,7 @@ from src.agent import VARIANTS, run_loop, warm_up
 RUNS = cfg.RESULTS / "runs.jsonl"
 JUDGE_CACHE = cfg.RESULTS / "judgements.jsonl"
 MANUAL = cfg.RESULTS / "manual_check.csv"
+KEY = {}   # key numbers for the report text (written to report/key_numbers.json by `analyze`)
 
 
 def load_questions():
@@ -169,8 +170,12 @@ def cmd_analyze(a):
     rows = [r for r in rows if r]
     an.write_csv(rows, cfg.RESULTS / "summary.csv")
     _print_table(rows)
+    KEY.clear()
+    KEY.update({"tau": cfg.TAU, "model": cfg.LLM_MODEL, "judge_model": cfg.JUDGE["model"], "repeats": cfg.REPEATS,
+                "variants": {r["key"]: r for r in rows}, "vs_v0": {}, "cv": {}})
 
     lat = an.latency_model([r for r in load_runs() if keep(r)])
+    KEY["latency"] = lat
     lines = ["# Statistics", ""]
     if lat:
         lines += [f"Latency per input token (prefill): {lat['ms_per_input_token']:.3f} ms",
@@ -192,6 +197,8 @@ def cmd_analyze(a):
         s = next(r for r in rows if r["key"] == v)
         diff = s["correct_pct"] - base_sum["correct_pct"]
         passes = diff >= -cfg.NONINFERIORITY_POINTS and s["abstention_acc_pct"] >= base_sum["abstention_acc_pct"]
+        KEY["vs_v0"][v] = {"diff_points": diff, "ci_lo": lo, "ci_hi": hi, "only_v0": a_only, "only_other": b_only,
+                           "p": p, "passes": passes}
         lines.append(f"{v} vs V0: correctness {diff:+.1f} points (95% bootstrap CI {lo:+.1f} to {hi:+.1f}); "
                      f"only V0 correct: {a_only}, only {v} correct: {b_only}, McNemar exact p = {p:.3f}; "
                      f"non-inferiority rule: {'PASS' if passes else 'FAIL'}")
@@ -199,6 +206,7 @@ def cmd_analyze(a):
     if agr:
         lines += ["", f"Judge agreement with your manual grades: {agr[0]}/{agr[1]} ({100 * agr[0] / agr[1]:.0f}%)"]
         kap = an.judge_kappa(MANUAL)
+        KEY["judge"] = {"agree": agr[0], "n": agr[1], "kappa": kap[0] if kap else None}
         if kap:
             lines.append(f"Cohen's kappa (judge vs manual, n = {kap[1]}): {kap[0]:.2f}")
     lines += _extra_analyses(scored, rows, lat, keep)
@@ -208,6 +216,12 @@ def cmd_analyze(a):
     tax = an.failure_taxonomy(scored, gp, gs, pid)
     an.write_csv(tax, cfg.RESULTS / "regressions.csv")
     print(f"\n{len(tax)} regressions written to results/regressions.csv (check the auto_label column).")
+    counts = {}
+    for t in tax:
+        counts.setdefault(t["variant"], {}).setdefault(t["auto_label"], 0)
+        counts[t["variant"]][t["auto_label"]] += 1
+    KEY["regressions"] = counts
+    (cfg.REPORT / "key_numbers.json").write_text(json.dumps(KEY, indent=2, default=float))
 
     an.write_csv([{**r, "input_tokens": round(r["input_tokens"]), "output_tokens": round(r["output_tokens"]),
                    "ttft_s": round(r["ttft_s"], 2), "latency_s": round(r["latency_s"], 2),
@@ -252,6 +266,7 @@ def _extra_analyses(scored, rows, lat, keep):
         for v in ("V3", "V1"):
             cv = an.cross_validated_tau(scored, cfg.TAU_SWEEP, v, cfg.NONINFERIORITY_POINTS,
                                         cfg.CV_FOLDS, cfg.CV_REPEATS)
+            KEY["cv"][v] = cv
             lines += ["", f"Cross-validated TAU for {v} ({cv['folds']}-fold x {cv['repeats']}, sweep data): "
                       f"in-sample TAU {cv['tau_in_sample']} gives {cv['in_sample_correct_pct']:.1f}% correct, "
                       f"held-out {cv['cv_correct_pct']:.1f}% (optimism {cv['optimism_points']:+.1f} points); "
@@ -262,6 +277,7 @@ def _extra_analyses(scored, rows, lat, keep):
     ctx = an.decode_by_context([r for r in load_runs() if keep(r)])
     hw = an.hardware_limits(lat, facts and facts["file_bytes"], cfg.HW_MEMORY_BANDWIDTH_GB_S,
                             facts and facts["kv_bytes_per_token"], ctx)
+    KEY.update({"hardware": hw, "decode_by_context": ctx, "model_facts": facts})
     if hw:
         lines += ["", f"Hardware ({cfg.HW_NAME}, {hw['bandwidth_gb_s']} GB/s, model file {hw['model_gb']:.2f} GB): "
                   f"decode ceiling {hw['decode_ceiling_tok_s']:.0f} tok/s, measured {hw['decode_measured_tok_s']:.1f} tok/s "
@@ -281,6 +297,7 @@ def _extra_analyses(scored, rows, lat, keep):
     if "V0" in by and "V3" in by:
         sp = an.scale_projection(by["V0"], by["V3"], lat, cfg.SCALE_QUERIES_PER_DAY,
                                  cfg.PRICE_INPUT_PER_M, cfg.PRICE_OUTPUT_PER_M)
+        KEY["scale"] = sp
         line = (f"Scale projection, V3 vs V0 at {sp['queries_per_day']:,} queries/day: "
                 f"{sp['input_tokens_saved_per_day'] / 1e6:.0f}M input and {sp['output_tokens_saved_per_day'] / 1e6:.1f}M "
                 f"output tokens saved per day; {sp['latency_saved_s_per_query']:.2f} s faster per query, "
