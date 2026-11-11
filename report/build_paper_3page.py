@@ -40,7 +40,7 @@ tblsb = S("tblsb", fontName="TNR-B", fontSize=9, leading=10.4, alignment=TA_LEFT
 cap = S("cap", fontSize=10, leading=12, alignment=TA_LEFT, spaceBefore=2, spaceAfter=5)
 capk = S("capk", fontSize=10, leading=12, alignment=TA_LEFT, spaceAfter=2, keepWithNext=1)
 abst = S("abst", fontSize=11, leading=13.2, leftIndent=0.6 * cm, rightIndent=0.6 * cm, spaceAfter=3)
-ref = S("ref", fontSize=10.5, leading=12.8, alignment=TA_LEFT, leftIndent=24, firstLineIndent=-24, spaceAfter=3)
+ref = S("ref", fontSize=9.5, leading=11.2, alignment=TA_LEFT, leftIndent=24, firstLineIndent=-24, spaceAfter=3)
 
 def P(t, st=body): return Paragraph(t, st)
 def B(t): return Paragraph(t, bul, bulletText="•")
@@ -87,6 +87,11 @@ _RUNS = [json.loads(l) for l in open(os.path.join("..", "results", "runs.jsonl")
 N_SWEEP = sum(r["experiment"] == "sweep" for r in _RUNS)
 N_MAIN = sum(r["experiment"] == "main" for r in _RUNS)
 N_LLM = sum(bool(r.get("llm_called")) for r in _RUNS)
+RUN_HOURS = sum(r["latency_ms"] for r in _RUNS) / 3.6e6
+TOK_IN = sum(r["prompt_tokens"] for r in _RUNS)
+TOK_OUT = sum(r["output_tokens"] for r in _RUNS)
+_JUD = [json.loads(l) for l in open(os.path.join("..", "results", "judgements.jsonl"), encoding="utf-8")]
+N_RULE = sum("rule-based" in j.get("reason", "") for j in _JUD)
 AI_USE = open("ai_use.txt", encoding="utf-8").read().strip() if os.path.exists("ai_use.txt") else ""
 REPO = "https://github.com/SalinaGiri/token-efficient-rag-agent"
 V, C, LAT, HW = K["variants"], K["vs_v0"], K["latency"], K["hardware"]
@@ -127,9 +132,8 @@ s.append(P(
 # ---------- 1 ----------
 s.append(P("1. Introduction", h1))
 s.append(P(
-    "A knowledge assistant sends the LLM instructions, history, retrieved passages and the question. As the knowledge "
-    "base grows, tokens per request rise, and with them cost, latency and energy; in agents the effect compounds at "
-    "every step. Yet cutting tokens carelessly removes evidence or citations. This study asks: <b>(RQ1)</b> how far "
+    "As a knowledge base grows, every request to the LLM carries more tokens, raising cost, latency and energy, and "
+    "agents pay this at every step; yet careless cuts remove evidence and citations. This study asks: <b>(RQ1)</b> how far "
     "can input and output tokens be reduced while correctness stays within a pre-defined margin; <b>(RQ2)</b> do input "
     "and output tokens have different latency costs; and <b>(RQ3)</b> does adaptive retrieval improve correct "
     "abstention on unanswerable questions?"))
@@ -157,15 +161,14 @@ s.append(T(t1, [2.5 * cm, 5.6 * cm, 2.2 * cm, 3.9 * cm, W - 14.2 * cm], small=Tr
 # ---------- 3 ----------
 s.append(P("3. Methodology", h1))
 s.append(P(
-    "<b>Selection and rationale.</b> T1 and T4 were selected because they cover <i>one inference phase each</i>, which "
-    "makes RQ2 testable; they target the largest token sources; they need no model training; and both keep source "
-    "text verbatim, so every citation still points to a real passage. T2 risks traceability, T3 needs multi-turn data "
-    "and T5 a calibrated confidence signal, so they form the next iteration."))
+    "<b>Selection and rationale.</b> T1 and T4 cover <i>one inference phase each</i>, which makes RQ2 testable; they "
+    "need no training and keep source text verbatim, so every citation points to a real passage. T2 risks "
+    "traceability, T3 needs multi-turn data and T5 a calibrated confidence signal: the next iteration."))
 s.append(P(
     "<b>Data and materials.</b> Knowledge base: the Kubernetes troubleshooting documentation (snapshot of 10 November "
     f"2026: {CORPUS['sections']} sections, {CORPUS['passages']} passages of ~250 tokens, about "
-    f"{num(round(CORPUS['approx_tokens_total'], -3))} tokens in total). Test set: 40 questions with reference answers "
-    "and gold passages verified against the corpus (25 single-fact, 8 two-passage, 7 unanswerable). Model: "
+    f"{num(round(CORPUS['approx_tokens_total'], -3))} tokens in total). Test set: 40 questions written by hand with reference answers "
+    "and gold passages checked manually against the corpus (25 single-fact, 8 two-passage, 7 unanswerable). Model: "
     "Qwen2.5-3B-Instruct (Q4_K_M) served locally by Ollama on an Apple M4 MacBook Air, temperature 0; retrieval with "
     "all-MiniLM-L6-v2 [16] and a MiniLM cross-encoder [15]. All "
     f"{num(N_SWEEP + N_MAIN)} runs ({num(N_SWEEP)} in the τ sweep, {num(N_MAIN)} in the main experiment: 40 questions × 5 "
@@ -197,8 +200,7 @@ s.append(P("<b>Table 2.</b> Results per variant over 40 questions (tokens and la
            "first run). Cited = citation precision; Abstain = abstention accuracy; TCCA = tokens per correct cited "
            "answer; TPCA = tokens per correct answer.", capk))
 s.append(T(t4, [3.7 * cm] + [(W - 3.7 * cm) / 9] * 9))
-s.append(Spacer(1, 5))
-s.append(KeepTogether([img("fig1_tokens_quality.png", W * 0.64),
+s.append(KeepTogether([img("fig1_tokens_quality.png", W * 0.53),
     P("<b>Figure 1.</b> (a) Mean tokens per query: input (grey) and output (black). (b) Correct answers (light bar) "
       "and answers that are also correctly cited (dark bar).", cap)]))
 s.append(P(
@@ -216,7 +218,7 @@ s.append(P(
     "questions got “not found” without any LLM call. The baseline almost never cited a passage, which inflates its "
     f"TCCA; ignoring citations, TPCA still fell from {num(v0['tpca'])} to {num(v1['tpca'])} (V1) and "
     f"{num(v3['tpca'])} (V3)."))
-s.append(KeepTogether([img("fig2_token_exchange_rate.png", W * 0.64),
+s.append(KeepTogether([img("fig2_token_exchange_rate.png", W * 0.55),
     P("<b>Figure 2.</b> (a) Measured latency per input token (prefill) and per output token (decode). (b) Tokens per "
       "query against correctness for every swept τ (sweep run); the dotted line is the non-inferiority margin.", cap)]))
 s.append(P(
@@ -246,8 +248,7 @@ s.append(P(
     f"{v0['ttft_s']:.1f} of {v0['latency_s']:.1f} s) and T1 saved far more time than T4. Where prefill is much faster "
     "relative to decode, as on data-centre accelerators [1, 2], output reduction gains weight, so the exchange rate "
     "should be measured per deployment. <b>RQ3.</b> Yes: abstention accuracy rose from "
-    f"{v0['abstention_acc_pct']:.0f}% to {v1['abstention_acc_pct']:.0f}%. For a knowledge hub this suggests adaptive "
-    "retrieval by default and an output budget that adapts to the question. "
+    f"{v0['abstention_acc_pct']:.0f}% to {v1['abstention_acc_pct']:.0f}%. "
     f"At {num(SC['queries_per_day'])} queries a day, V3’s measured "
     f"savings would amount to about {SC['input_tokens_saved_per_day'] / 1e6:,.0f} million input tokens and "
     f"{SC['machine_hours_saved_per_day']:,.0f} machine-hours per day on this hardware"
@@ -257,11 +258,21 @@ s.append(P(
 # ---------- 6 ----------
 s.append(P("6. Conclusion", h1))
 s.append(P(
-    f"Adaptive retrieval is the clear win: {red(v0, v1, 'input_tokens'):.0f}% fewer input tokens, "
-    f"{v0['latency_s'] / v1['latency_s']:.0f} times lower latency and better abstention at equal correctness. A fixed "
-    "output budget saves decode time but costs completeness. <b>Limitations:</b> 40 "
-    "questions from one domain; one 3B model on one fanless laptop (cooling breaks between runs); a judge slightly "
-    "lenient on multi-part answers; τ tuned on the test set. <b>Future work:</b> question-adaptive output budgets, "
+    f"<b>(1) Adaptive retrieval is the clear win.</b> V1 cut input tokens from {num(v0['input_tokens'])} to "
+    f"{num(v1['input_tokens'])} ({red(v0, v1, 'input_tokens'):.0f}%) and latency from {v0['latency_s']:.1f} s to "
+    f"{v1['latency_s']:.1f} s ({v0['latency_s'] / v1['latency_s']:.1f} times faster), while correctness went from "
+    f"{v0['correct_pct']:.1f}% to {v1['correct_pct']:.1f}% (p = {C['V1']['p']:.2f}) and abstention from "
+    f"{v0['abstention_acc_pct']:.0f}% to {v1['abstention_acc_pct']:.0f}%. "
+    f"<b>(2) A fixed output budget is not safe.</b> It cut output tokens by {red(v0, v2, 'output_tokens'):.0f}% but "
+    f"correctness fell {neg(-C['V2']['diff_points'])} points (p = {C['V2']['p']:.3f}, the only significant change), and "
+    f"by {neg(-C['V3']['diff_points'])} points when combined with T1. "
+    f"<b>(3) On this hardware the input side dominates:</b> one output token costs {LAT['exchange_rate']:.0f} input "
+    f"tokens of latency (R² = {LAT['reg_r2']:.2f}), and decode already runs at {HW['bandwidth_utilisation_pct']:.0f}% of "
+    f"its memory-bandwidth limit. <b>(4) The evidence holds up:</b> the judge matches blind manual grading "
+    f"(κ = {J['kappa']:.2f}), but tuning τ on the test set overstates V3 by "
+    f"{CV['V3']['optimism_points']:.0f} points. <b>Recommendation:</b> use adaptive retrieval by default with τ set on "
+    "held-out questions, and replace the fixed output budget with one that adapts to the question. "
+    "<b>Limitations:</b> 40 questions from one domain; one 3B model on one fanless laptop; a judge slightly lenient on multi-part answers. <b>Future work:</b> question-adaptive output budgets, "
     "history compaction, a citation-gated cascade, and the exchange rate on a server GPU."))
 s.append(P("<b>Use of AI tools.</b> " + (AI_USE or ph("Which tools you used and for what; that you verified every "
            "source, line of code and result yourself.")), S("ai", fontSize=11, leading=13.2)))
@@ -290,5 +301,39 @@ refs = [
 ]
 for i, r in enumerate(refs, 1):
     s.append(P(f"[{i}]&nbsp;&nbsp;{r}", ref))
+s.append(P("Appendix A. Experimental Record", h1))
+s.append(P("<b>Table 3.</b> Everything that was built, run and checked for this study. All figures are counted from "
+           "the files in the repository (results/ and data/).", capk))
+RG = K["regressions"]
+t3 = [["Step", "What was done", "Size and outcome"],
+      ["Knowledge base", "Kubernetes troubleshooting documentation downloaded, cleaned and split; dated copy stored",
+       f"{CORPUS['sections']} sections, {CORPUS['passages']} passages, ~{num(round(CORPUS['approx_tokens_total'], -3))} tokens"],
+      ["Test set", "Questions and reference answers written by hand; gold passages checked manually",
+       "40 questions (25 single, 8 two-part, 7 unanswerable)"],
+      ["Threshold sweep", "Six τ values for V1 and V3, plus V0 as reference", f"{num(N_SWEEP)} runs; τ = {neg(K['tau'], 0)} chosen"],
+      ["Main experiment", f"5 variants × 40 questions × {K['repeats']} repeats, interleaved per question, resumable",
+       f"{num(N_MAIN)} runs"],
+      ["Local inference", "Qwen2.5-3B (Q4_K_M) in Ollama, temperature 0, prompt-prefix reuse prevented",
+       f"{num(N_LLM)} LLM calls; {TOK_IN / 1e6:.2f} M input and {num(TOK_OUT)} output tokens; {RUN_HOURS:.1f} h of timed answers"],
+      ["Automatic grading", "DeepSeek-chat judge on every distinct answer; rule for “not found” answers",
+       f"{len(_JUD)} answers graded ({len(_JUD) - N_RULE} by judge, {N_RULE} by rule)"],
+      ["Manual grading", "Random 20% of judge-graded main-run answers, graded blind by hand",
+       f"{J['n']} answers; {J['agree']} agree; κ = {J['kappa']:.2f}"],
+      ["Latency model", "Regression of LLM time on input and output tokens",
+       f"n = {LAT['n_calls']}, R² = {LAT['reg_r2']:.2f}; {LAT['ms_per_input_token']:.2f} vs {LAT['ms_per_output_token']:.1f} ms per token"],
+      ["Hardware check", "Decode speed against the memory-bandwidth ceiling; KV cache size from model metadata",
+       f"{HW['decode_measured_tok_s']:.0f} of {HW['decode_ceiling_tok_s']:.0f} tokens/s; {HW['kv_bytes_per_token'] / 1024:.0f} KiB per token"],
+      ["Significance tests", "Exact McNemar test and bootstrap 95% CI for each variant against V0",
+       f"4 comparisons; only V2 significant (p = {C['V2']['p']:.3f})"],
+      ["τ robustness", "Stratified 5-fold cross-validation, repeated 20 times",
+       f"optimism {CV['V3']['optimism_points']:.1f} points (V3), {CV['V1']['optimism_points']:.1f} points (V1)"],
+      ["Error analysis", "Every answer worse than the baseline, labelled automatically by cause",
+       f"{sum(sum(d.values()) for d in RG.values())} regressions (" + ", ".join(f"{v}: {sum(d.values())}" for v, d in RG.items()) + ")"],
+      ["Scale projection", f"V3 savings at {num(SC['queries_per_day'])} queries per day",
+       f"{SC['input_tokens_saved_per_day'] / 1e6:,.0f} M tokens, {SC['machine_hours_saved_per_day']:,.0f} machine-hours"
+       + (f", ~{SC['api_cost_saved_per_day']:,.0f} USD" if "api_cost_saved_per_day" in SC else "")],
+      ["Software checks", "Offline end-to-end test with fake models, run automatically on Python 3.11 to 3.13",
+       "all checks pass"]]
+s.append(T(t3, [3.0 * cm, 7.6 * cm, W - 10.6 * cm], small=True))
 doc.build(s)
-print("built; pages =", doc.page, "(last page = references)")
+print("built; pages =", doc.page, "(3 pages of text, then references and Appendix A)")
