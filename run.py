@@ -308,9 +308,39 @@ def _extra_analyses(scored, rows, lat, keep):
     return lines
 
 
+def _readme_results():
+    """Replace the results block in README.md with a table built from report/key_numbers.json."""
+    K = json.loads((cfg.REPORT / "key_numbers.json").read_text())
+    V, C = K["variants"], K["vs_v0"]
+    head = ("| Variant | Input tokens | Output tokens | Latency (s) | Correct (%) | Abstain (%) | TPCA | vs V0 (points, p) |\n"
+            "|---|---:|---:|---:|---:|---:|---:|---|")
+    lines = [head]
+    for k, r in V.items():
+        cmp = "" if k == "V0" else f"{C[k]['diff_points']:+.1f}, p = {C[k]['p']:.2f}" + (" ✓" if C[k]["passes"] else "")
+        lines.append(f"| {r['variant']} | {r['input_tokens']:,.0f} | {r['output_tokens']:,.0f} | {r['latency_s']:.1f} | "
+                     f"{r['correct_pct']:.0f} | {r['abstention_acc_pct']:.0f} | {r['tpca']:,.0f} | {cmp} |")
+    hw, j, lat = K["hardware"], K["judge"], K["latency"]
+    lines += ["", f"- 1 output token costs about **{lat['exchange_rate']:.0f} input tokens** of latency on the Apple M4; "
+              f"decode runs at {hw['bandwidth_utilisation_pct']:.0f}% of the memory-bandwidth ceiling "
+              f"({hw['decode_ceiling_tok_s']:.0f} tokens/s).",
+              f"- LLM judge vs blind manual grading: {j['agree']}/{j['n']} agree, Cohen's kappa = {j['kappa']:.2f}.",
+              f"- TAU = {K['tau']:g}; cross-validation shows tuning on the test questions is optimistic by up to "
+              f"{max(c['optimism_points'] for c in K['cv'].values()):.0f} points.",
+              "- ✓ = passes the non-inferiority rule (at most 3 points less correct, no drop in abstention). "
+              "Full results: `results/stats.md`; report: `report/Fewer_Better_Tokens_3page.pdf`."]
+    readme = cfg.ROOT / "README.md"
+    text = readme.read_text()
+    start, end = "<!-- results:start -->", "<!-- results:end -->"
+    if start in text and end in text:
+        pre, rest = text.split(start, 1)
+        readme.write_text(pre + start + "\n" + "\n".join(lines) + "\n" + end + rest.split(end, 1)[1])
+
+
 def cmd_report(a):
-    for script in ("make_figures.py", "build_paper_3page.py", "build_paper.py"):
+    scripts = ["make_figures.py", "build_paper_3page.py"] + (["build_paper.py"] if a.long else [])
+    for script in scripts:
         subprocess.run([sys.executable, script], cwd=cfg.REPORT, check=True)
+    _readme_results()
 
 
 def main():
@@ -318,6 +348,7 @@ def main():
     ap.add_argument("command", choices=["fetch", "gold", "scores", "sweep", "run", "judge", "analyze", "report"])
     ap.add_argument("--refresh", action="store_true", help="fetch: download the docs again")
     ap.add_argument("--force", action="store_true", help="gold: overwrite data/gold.csv")
+    ap.add_argument("--long", action="store_true", help="report: also build the long research-paper version")
     a = ap.parse_args()
     cfg.RESULTS.mkdir(exist_ok=True)
     globals()[f"cmd_{a.command}"](a)
