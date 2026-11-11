@@ -94,6 +94,7 @@ def main():
         print(f"  {s['variant']:<22} in={s['input_tokens']:7.1f} out={s['output_tokens']:6.1f} "
               f"correct={s['correct_pct']:5.1f} good={s['good_pct']:5.1f} cit={s['citation_precision_pct']:5.1f} "
               f"abst={s['abstention_acc_pct']:5.1f} tcca={s['tcca']:.1f}")
+        assert s["tpca"] <= s["tcca"], s     # every correct cited answer is also a correct answer
     lat = analyze.latency_model(runs)
     print("latency:", {k: round(v, 3) for k, v in lat.items()})
     print("mcnemar:", analyze.mcnemar_exact([True, True, False, True], [True, False, False, False]))

@@ -151,7 +151,7 @@ def _scored(passages):
 
 def _print_table(rows):
     cols = ["variant", "tau", "input_tokens", "output_tokens", "ttft_s", "latency_s", "correct_pct", "good_pct",
-            "citation_precision_pct", "abstention_acc_pct", "false_abstention_pct", "tcca"]
+            "citation_precision_pct", "abstention_acc_pct", "false_abstention_pct", "tcca", "tpca"]
     print(" | ".join(cols))
     for r in rows:
         print(" | ".join(f"{r[c]:.2f}" if isinstance(r[c], float) else str(r[c]) for c in cols))
@@ -213,10 +213,11 @@ def cmd_analyze(a):
                    "ttft_s": round(r["ttft_s"], 2), "latency_s": round(r["latency_s"], 2),
                    "correct_pct": round(r["correct_pct"]), "good_pct": round(r["good_pct"]),
                    "citation_precision_pct": round(r["citation_precision_pct"]),
-                   "abstention_acc_pct": round(r["abstention_acc_pct"]), "tcca": round(r["tcca"]), "placeholder": "no"}
+                   "abstention_acc_pct": round(r["abstention_acc_pct"]), "tcca": round(r["tcca"]), "tpca": round(r["tpca"]),
+                   "placeholder": "no"}
                   for r in rows], cfg.REPORT / "results.csv",
                  ["variant", "input_tokens", "output_tokens", "ttft_s", "latency_s", "correct_pct", "good_pct",
-                  "citation_precision_pct", "abstention_acc_pct", "tcca", "placeholder"])
+                  "citation_precision_pct", "abstention_acc_pct", "tcca", "tpca", "placeholder"])
     print("Wrote report/results.csv and report/latency_fit.csv. Next: python run.py report")
 
 

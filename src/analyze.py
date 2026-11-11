@@ -43,6 +43,7 @@ def summarize(scored, vkey, experiment="main", tau=None):
     llm = [r for r in rs if r["llm_called"]]
     total_tokens = sum(r["prompt_tokens"] + r["output_tokens"] for r in first)
     n_good = sum(r["good"] for r in first)
+    n_correct = sum(r["correct"] for r in first)
     return {
         "variant": VARIANTS[vkey]["name"], "key": vkey, "tau": rs[0]["tau"], "n_questions": len(first),
         "input_tokens": mean(r["prompt_tokens"] for r in rs),
@@ -58,6 +59,8 @@ def summarize(scored, vkey, experiment="main", tau=None):
         "truncation_pct": _pct([r["truncated"] for r in llm]),
         "llm_calls_pct": _pct([r["llm_called"] for r in first]),
         "tcca": total_tokens / n_good if n_good else float("inf"),
+        # tokens per correct answer, citations ignored: shows savings are not only a citation effect
+        "tpca": total_tokens / n_correct if n_correct else float("inf"),
     }
 
 
@@ -160,11 +163,13 @@ def subset_metrics(rows):
     ans = [r for r in rows if not r["unanswerable"]]
     unans = [r for r in rows if r["unanswerable"]]
     n_good = sum(r["good"] for r in rows)
+    n_correct = sum(r["correct"] for r in rows)
     tokens = sum(r["prompt_tokens"] + r["output_tokens"] for r in rows)
     return {"correct_pct": _pct([r["correct"] for r in rows]),
             "abstention_acc_pct": _pct([r["correct"] for r in unans]) if unans else float("nan"),
             "answerable_correct_pct": _pct([r["correct"] for r in ans]) if ans else float("nan"),
             "tcca": tokens / n_good if n_good else float("inf"),
+            "tpca": tokens / n_correct if n_correct else float("inf"),
             "tokens": tokens, "n_good": n_good}
 
 
