@@ -276,3 +276,35 @@ def judge_kappa(path):
     last = list(rows[0].keys())[-1]
     pairs = [(r["judge_verdict"], r[last]) for r in rows if (r[last] or "").strip()]
     return (cohens_kappa(pairs), len(pairs)) if pairs else None
+
+
+def decode_by_context(runs, split_tokens=2000):
+    """Decode speed for short vs long prompts. Each output token reads the weights AND the KV cache of all
+    previous tokens, so long prompts make every output token slower."""
+    llm = [r for r in runs if r["experiment"] == "main" and r["llm_called"] and r["output_tokens"] > 1]
+    out = {}
+    for name, rs in (("short", [r for r in llm if r["prompt_tokens"] < split_tokens]),
+                     ("long", [r for r in llm if r["prompt_tokens"] >= split_tokens])):
+        if rs:
+            out[name] = {"n": len(rs), "mean_prompt_tokens": mean(r["prompt_tokens"] for r in rs),
+                         "ms_per_output_token": sum(r["decode_ms"] for r in rs) / sum(r["output_tokens"] for r in rs)}
+    return out
+
+
+def hardware_limits(lat, model_bytes, bandwidth_gb_s, kv_bytes_per_token=None, by_context=None):
+    """Compare measured decode speed with the memory-bandwidth ceiling: every output token must read all
+    weights once, so tokens/s <= bandwidth / model size."""
+    if not lat or not model_bytes or not bandwidth_gb_s:
+        return None
+    ceiling = bandwidth_gb_s * 1e9 / model_bytes
+    measured = 1000 / lat["ms_per_output_token"]
+    res = {"model_gb": model_bytes / 1e9, "bandwidth_gb_s": bandwidth_gb_s,
+           "decode_ceiling_tok_s": ceiling, "decode_measured_tok_s": measured,
+           "bandwidth_utilisation_pct": 100 * measured / ceiling,
+           "prefill_measured_tok_s": 1000 / lat["ms_per_input_token"]}
+    if kv_bytes_per_token and by_context and "long" in by_context:
+        kv = kv_bytes_per_token * by_context["long"]["mean_prompt_tokens"]
+        res["kv_bytes_per_token"] = kv_bytes_per_token
+        res["kv_cache_gb_long_prompt"] = kv / 1e9
+        res["decode_ceiling_long_prompt_tok_s"] = bandwidth_gb_s * 1e9 / (model_bytes + kv)
+    return res
