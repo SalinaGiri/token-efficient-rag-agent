@@ -245,3 +245,34 @@ def tradeoff_rows(scored, taus, variants=("V1", "V3")):
                              "correct_pct": m["correct_pct"], "abstention_acc_pct": m["abstention_acc_pct"],
                              "tcca": m["tcca"]})
     return rows
+
+
+def _norm_verdict(s):
+    s = (s or "").strip().lower()
+    return {"right": "correct", "wrong": "incorrect", "abstain": "abstained"}.get(s, s)
+
+
+def cohens_kappa(pairs):
+    """Agreement between two raters beyond chance. pairs = [(rater_a, rater_b), ...]. 1 = perfect, 0 = chance."""
+    pairs = [(_norm_verdict(a), _norm_verdict(b)) for a, b in pairs]
+    n = len(pairs)
+    if n == 0:
+        return float("nan")
+    labels = sorted({x for p in pairs for x in p})
+    po = sum(a == b for a, b in pairs) / n
+    pe = sum((sum(a == l for a, _ in pairs) / n) * (sum(b == l for _, b in pairs) / n) for l in labels)
+    return 1.0 if pe == 1 else (po - pe) / (1 - pe)
+
+
+def judge_kappa(path):
+    """Cohen's kappa between the judge and the manual grades in results/manual_check.csv (filled rows only)."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+    except FileNotFoundError:
+        return None
+    if not rows:
+        return None
+    last = list(rows[0].keys())[-1]
+    pairs = [(r["judge_verdict"], r[last]) for r in rows if (r[last] or "").strip()]
+    return (cohens_kappa(pairs), len(pairs)) if pairs else None
