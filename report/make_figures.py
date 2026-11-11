@@ -78,18 +78,83 @@ plt.close(fig)
 
 # ---------- Figure 2: latency cost of one input vs one output token ----------
 ci, co = float(fit["ms_per_input_token"]), float(fit["ms_per_output_token"])
-fig, ax = plt.subplots(figsize=(3.8, 2.5))
-bars = ax.bar(["One input token\n(prefill)", "One output token\n(decode)"], [ci, co],
-              color=[MID, DARK], width=0.5, edgecolor="white")
-for r, v in zip(bars, [ci, co]):
-    ax.text(r.get_x() + r.get_width() / 2, v + co * 0.03, f"{v:g} ms", ha="center", fontsize=9.5)
-ax.set_ylabel("Added latency (ms per token)")
-ax.set_ylim(0, co * 1.25)
-ax.yaxis.grid(True, color=GRID, linewidth=0.6); ax.set_axisbelow(True)
-ax.set_title(f"1 output token ≈ {co / ci:,.0f} input tokens in latency", loc="left",
-             fontweight="bold", fontsize=10)
-clean(ax)
-watermark(fig)
-fig.savefig("fig2_token_exchange_rate.png", dpi=300, bbox_inches="tight")
-plt.close(fig)
-print("figures written; placeholder =", placeholder)
+
+def exchange_panel(ax, title_prefix=""):
+    bars = ax.bar(["One input token\n(prefill)", "One output token\n(decode)"], [ci, co],
+                  color=[MID, DARK], width=0.5, edgecolor="white")
+    for r, v in zip(bars, [ci, co]):
+        ax.text(r.get_x() + r.get_width() / 2, v + co * 0.03, f"{v:g} ms", ha="center", fontsize=9.5)
+    ax.set_ylabel("Added latency (ms per token)")
+    ax.set_ylim(0, co * 1.25)
+    ax.yaxis.grid(True, color=GRID, linewidth=0.6); ax.set_axisbelow(True)
+    ax.set_title(f"{title_prefix}1 output token ≈ {co / ci:,.0f} input tokens", loc="left",
+                 fontweight="bold", fontsize=10)
+    clean(ax)
+
+def tradeoff_panel(ax, trade, chosen_tau=None, title_prefix=""):
+    """Tokens vs correctness for every swept TAU; V0 as the reference point."""
+    styles = {"V1": dict(color=MID, marker="o", linestyle="--", label="V1 (T1 only)"),
+              "V3": dict(color=DARK, marker="s", linestyle="-", label="V3 (T1 + T4)")}
+    for v, st in styles.items():
+        pts = sorted([r for r in trade if r["variant"] == v], key=lambda r: float(r["tau"]))
+        if not pts:
+            continue
+        xs = [float(r["tokens_per_query"]) for r in pts]
+        ys = [float(r["correct_pct"]) for r in pts]
+        ax.plot(xs, ys, markersize=4, linewidth=1, **st)
+        if v == "V3":
+            for r, x, y in zip(pts, xs, ys):
+                ax.annotate(f"τ={float(r['tau']):g}", (x, y), textcoords="offset points", xytext=(4, -10), fontsize=7.5)
+                if chosen_tau is not None and abs(float(r["tau"]) - chosen_tau) < 1e-9:
+                    ax.plot([x], [y], marker="o", markersize=11, markerfacecolor="none", markeredgecolor=DARK,
+                            linewidth=0, label=f"chosen τ = {chosen_tau:g}")
+    base = [r for r in trade if r["variant"] == "V0"]
+    if base:
+        bx, by = float(base[0]["tokens_per_query"]), float(base[0]["correct_pct"])
+        ax.plot([bx], [by], marker="*", markersize=10, color=DARK, linewidth=0, label="V0 baseline")
+        ax.axhline(by - 3, color=LIGHT, linewidth=0.8, linestyle=":")
+        ax.text(bx, by - 3, "V0 - 3 points", fontsize=7.5, ha="right", va="bottom", color="#555555")
+    ax.set_xscale("log")
+    from matplotlib.ticker import NullFormatter, FixedLocator, FuncFormatter
+    lo, hi = ax.get_xlim()
+    ticks = [t for t in (100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000) if lo <= t <= hi]
+    ax.xaxis.set_major_locator(FixedLocator(ticks))
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:,.0f}"))
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.set_xlabel("Tokens per query (log scale)")
+    ax.set_ylabel("Correct (%)")
+    ax.set_title(f"{title_prefix}Threshold trade-off (sweep)", loc="left", fontweight="bold", fontsize=10)
+    ax.grid(True, color=GRID, linewidth=0.6); ax.set_axisbelow(True)
+    ax.legend(frameon=False, fontsize=7.5, loc="lower right")
+    clean(ax)
+
+try:
+    trade = read("tradeoff.csv")
+except FileNotFoundError:
+    trade = []
+try:
+    import sys, pathlib
+    sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+    import config
+    chosen = config.TAU
+except Exception:
+    chosen = None
+
+if trade:
+    fig, (a, b) = plt.subplots(1, 2, figsize=(7.2, 2.6), gridspec_kw={"width_ratios": [1, 1.25], "wspace": 0.35})
+    exchange_panel(a, "(a) ")
+    tradeoff_panel(b, trade, chosen, "(b) ")
+    watermark(fig)
+    fig.savefig("fig2_token_exchange_rate.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    fig, ax = plt.subplots(figsize=(4.2, 2.8))
+    tradeoff_panel(ax, trade, chosen)
+    fig.savefig("fig3_tradeoff.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+else:
+    fig, ax = plt.subplots(figsize=(3.8, 2.5))
+    exchange_panel(ax)
+    watermark(fig)
+    fig.savefig("fig2_token_exchange_rate.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
+print("figures written; placeholder =", placeholder, "; trade-off panel =", bool(trade))
