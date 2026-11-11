@@ -308,3 +308,18 @@ def hardware_limits(lat, model_bytes, bandwidth_gb_s, kv_bytes_per_token=None, b
         res["kv_cache_gb_long_prompt"] = kv / 1e9
         res["decode_ceiling_long_prompt_tok_s"] = bandwidth_gb_s * 1e9 / (model_bytes + kv)
     return res
+
+
+def scale_projection(base, opt, lat, queries_per_day, price_in_per_m=None, price_out_per_m=None):
+    """What the measured per-query savings mean at a given daily volume. Uses only measured averages;
+    API cost only if prices are given."""
+    d_in = base["input_tokens"] - opt["input_tokens"]
+    d_out = base["output_tokens"] - opt["output_tokens"]
+    res = {"queries_per_day": queries_per_day,
+           "input_tokens_saved_per_day": d_in * queries_per_day,
+           "output_tokens_saved_per_day": d_out * queries_per_day,
+           "latency_saved_s_per_query": base["latency_s"] - opt["latency_s"],
+           "machine_hours_saved_per_day": (base["latency_s"] - opt["latency_s"]) * queries_per_day / 3600}
+    if price_in_per_m is not None and price_out_per_m is not None:
+        res["api_cost_saved_per_day"] = (d_in * price_in_per_m + d_out * price_out_per_m) * queries_per_day / 1e6
+    return res
