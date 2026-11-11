@@ -41,8 +41,8 @@ NONINFERIORITY_POINTS = 3.0   # max allowed drop in correctness (percentage poin
 # backend "ollama": a local model (use a different family than LLM_MODEL)
 # backend "openai": any OpenAI-compatible API (OpenAI, DeepSeek, Qwen/DashScope, ...)
 JUDGE = {
-    "backend": "ollama",
-    "model": "qwen2.5:7b",
+    "backend": "openai",
+    "model": "deepseek-chat",
     "base_url": "https://api.deepseek.com/v1",   # only used for backend "openai"
     "api_key_env": "JUDGE_API_KEY",              # name of the environment variable with your key
 }
