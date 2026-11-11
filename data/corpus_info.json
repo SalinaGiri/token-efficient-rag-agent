@@ -1,0 +1,15 @@
+{
+  "files": {
+    "applications": "applications_2026-11-10.html",
+    "clusters": "clusters_2026-11-10.html"
+  },
+  "urls": {
+    "applications": "https://kubernetes.io/docs/tasks/debug/debug-application/_print/",
+    "clusters": "https://kubernetes.io/docs/tasks/debug/debug-cluster/_print/"
+  },
+  "sections": 111,
+  "passages": 232,
+  "approx_tokens_total": 36086,
+  "median_section_tokens": 152,
+  "median_passage_tokens": 166.0
+}

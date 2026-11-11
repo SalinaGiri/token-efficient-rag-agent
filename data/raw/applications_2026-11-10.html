@@ -1,0 +1,1050 @@
+<!doctype html><html itemscope itemtype=http://schema.org/WebPage dir=ltr lang=en class=no-js><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><link rel=canonical type=text/html href=https://kubernetes.io/docs/tasks/debug/debug-application/><meta name=robots content="noindex, nofollow"><link rel="shortcut icon" type=image/png href=/images/kubernetes.png><link rel=icon type=image/png sizes=64x64 href=/icons/favicon-64.png><link rel=icon type=image/png sizes=32x32 href=/icons/favicon-32.png><link rel=icon type=image/png sizes=16x16 href=/icons/favicon-16.png><link rel=apple-touch-icon-256x256 href=/icons/apple-touch-icon-256x256.png><link rel=apple-touch-icon-196x196 href=/icons/apple-touch-icon-196x196.png><link rel=apple-touch-icon-192x192 href=/icons/apple-touch-icon-192x192.png><link rel=apple-touch-icon-180x180 href=/icons/apple-touch-icon-180x180.png><link rel=apple-touch-icon-167x167 href=/icons/apple-touch-icon-167x167.png><link rel=apple-touch-icon-160x160 href=/icons/apple-touch-icon-160x160.png><link rel=apple-touch-icon-152x152 href=/icons/apple-touch-icon-152x152.png><link rel=apple-touch-icon-120x120 href=/icons/apple-touch-icon-120x120.png><link rel=apple-touch-icon-76x76 href=/icons/apple-touch-icon-76x76.png><link rel=icon type=image/png href=/icons/icon-128x128.png sizes=128x128><meta name=theme-color content="#326de6"><title>Troubleshooting Applications | Kubernetes</title>
+<meta name=description content="Debugging common containerized application issues."><meta property="og:url" content="https://kubernetes.io/docs/tasks/debug/debug-application/"><meta property="og:site_name" content="Kubernetes"><meta property="og:title" content="Troubleshooting Applications"><meta property="og:description" content="Debugging common containerized application issues."><meta property="og:locale" content="en"><meta property="og:type" content="website"><meta itemprop=name content="Troubleshooting Applications"><meta itemprop=description content="Debugging common containerized application issues."><meta itemprop=dateModified content="2022-04-26T00:30:51-04:00"><meta itemprop=wordCount content="41"><meta name=twitter:card content="summary"><meta name=twitter:title content="Troubleshooting Applications"><meta name=twitter:description content="Debugging common containerized application issues."><link rel=preload href=/scss/main.min.87c973b8ec0f8846d06afc9d62bf804aaf9dcf2c55fb56f683f086531011a55b.css as=style integrity="sha256-h8lzuOwPiEbQavydYr+ASq+dzyxV+1b2g/CGUxARpVs=" crossorigin=anonymous><link href=/scss/main.min.87c973b8ec0f8846d06afc9d62bf804aaf9dcf2c55fb56f683f086531011a55b.css rel=stylesheet integrity="sha256-h8lzuOwPiEbQavydYr+ASq+dzyxV+1b2g/CGUxARpVs=" crossorigin=anonymous><script src=https://code.jquery.com/jquery-3.7.1.min.js integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin=anonymous></script><meta property="og:image" content="/images/kubernetes-open-graph.png"><link rel=manifest href=/manifest.webmanifest><link rel=alternate hreflang=zh-cn href=https://kubernetes.io/zh-cn/docs/tasks/debug/debug-application/><link rel=alternate hreflang=ja href=https://kubernetes.io/ja/docs/tasks/debug/debug-application/><link rel=alternate hreflang=ko href=https://kubernetes.io/ko/docs/tasks/debug/debug-application/><link rel=alternate hreflang=pt-br href=https://kubernetes.io/pt-br/docs/tasks/debug/debug-application/><link rel=alternate hreflang=es href=https://kubernetes.io/es/docs/tasks/debug/debug-application/><script type=application/ld+json>{"@context":"https://schema.org","@type":"Organization","url":"https://kubernetes.io","logo":"https://kubernetes.io/images/favicon.png","potentialAction":{"@type":"SearchAction","target":"https://kubernetes.io/search/?q={search_term_string}","query-input":"required name=search_term_string"}}</script><meta name=theme-color content="#326ce5"><script defer src=/js/banner-dismiss.min.d63c13bb21e46f5f758aba46e2ec7ebe4a40d2cbb3941f72a9fb20938c41292e.js integrity="sha256-1jwTuyHkb191irpG4ux+vkpA0suzlB9yqfsgk4xBKS4=" crossorigin=anonymous></script><script src=/js/legacy-script.js></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-JPP6RFM2BP"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-JPP6RFM2BP")}</script></head><body class=td-section><header><nav class="js-navbar-scroll navbar navbar-expand flex-md-column flex-xl-row td-navbar" data-bs-theme=dark data-auto-burger=primary><a class=navbar-brand href=/><span class="navbar-brand__logo navbar-logo"><svg role="img" viewBox="-6.09 -6.09 446.94 115.94"><defs><style>.cls-1{fill:#fff}.cls-2{fill:#326ce5}</style></defs><g id="its-pronounced"><g id="kyoob-cuttle"><path id="kkkkkkk" d="M139.583 53.815c.823-.926 1.646-1.852 2.572-2.778q1.29-1.436 2.572-2.88c.823-1.03 1.646-1.956 2.367-2.78s1.44-1.645 1.954-2.262h9.98c-1.955 2.263-3.91 4.527-5.864 6.584q-2.778 3.087-6.173 6.482a41.554 41.554.0 013.498 3.704c1.234 1.44 2.366 2.88 3.498 4.32a43.93 43.93.0 013.086 4.528c.926 1.543 1.75 2.88 2.367 4.115h-9.67c-.619-1.03-1.339-2.058-2.059-3.19a37.46 37.46.0 00-2.47-3.6 29.584 29.584.0 00-2.777-3.498 17.678 17.678.0 00-2.778-2.778v12.963h-8.436v-42.49l8.436-1.338v24.898" class="cls-1"/><path id="uuuuuuu" d="M188.761 71.819a40.037 40.037.0 01-5.555 1.132 39.77 39.77.0 01-7.1.514 16.577 16.577.0 01-6.378-1.028 9.45 9.45.0 01-5.967-7.202 24.194 24.194.0 01-.618-5.556V43.115h8.437V58.65c0 2.675.31 4.63 1.03 5.865s2.056 1.852 4.011 1.852a13.117 13.117.0 001.955-.103c.72-.103 1.235-.103 1.852-.206V43.115h8.436l-.103 28.704" class="cls-1"/><path id="bbbbbbb" d="M215.82 57.724c0-5.452-1.955-8.127-5.968-8.127a10.99 10.99.0 00-2.572.308 7.775 7.775.0 00-2.057.823v15.33c.411.103.926.103 1.543.206.617.0 1.337.103 2.058.103A6.37 6.37.0 00214.071 64a10.55 10.55.0 001.75-6.276m8.538.206a18.63 18.63.0 01-1.029 6.482 13.242 13.242.0 01-2.983 4.938 15.823 15.823.0 01-4.836 3.19 18.829 18.829.0 01-6.585 1.028c-1.028.0-2.057-.103-3.189-.205s-2.16-.206-3.292-.31c-1.029-.102-2.058-.308-3.087-.514a13.002 13.002.0 01-2.572-.72V30.254l8.437-1.337v14.815a14.37 14.37.0 012.983-.926 17.028 17.028.0 013.293-.308 13.036 13.036.0 015.555 1.13 11.142 11.142.0 014.116 3.088 12.408 12.408.0 012.47 4.938 29.216 29.216.0 01.72 6.276" class="cls-1"/><path id="eeeeeee0" d="M229.401 58.239a17.557 17.557.0 011.234-6.893 15.744 15.744.0 013.19-4.94 11.991 11.991.0 014.526-2.982 13.75 13.75.0 015.35-1.03 13.168 13.168.0 019.98 3.91c2.47 2.572 3.703 6.38 3.703 11.317a9.413 9.413.0 01-.102 1.647c0 .514-.103 1.028-.103 1.543h-19.138a5.64 5.64.0 002.47 4.115 9.79 9.79.0 005.761 1.543 21.806 21.806.0 004.527-.411 18.455 18.455.0 003.704-1.03l1.131 6.894c-.41.206-1.028.412-1.85.72a10.37 10.37.0 01-2.574.515 23.221 23.221.0 01-2.983.41c-1.029.104-2.16.207-3.19.207a18.09 18.09.0 01-6.996-1.234 15.148 15.148.0 01-4.938-3.19 14.85 14.85.0 01-2.88-4.938 24.165 24.165.0 01-.824-6.173m19.857-3.292a6.652 6.652.0 00-.412-2.058 6.254 6.254.0 00-.926-1.852 4.915 4.915.0 00-4.115-1.852 6.216 6.216.0 00-2.47.514 4.092 4.092.0 00-1.645 1.235 5.395 5.395.0 00-1.03 1.852 15.044 15.044.0 00-.514 2.058h11.112" class="cls-1"/><path id="rrrrrrr" d="M281.768 50.523a15.46 15.46.0 00-2.675-.515 17.027 17.027.0 00-3.292-.31 18.138 18.138.0 00-1.955.207 16.165 16.165.0 00-1.646.309V72.95h-8.437V44.658a43.765 43.765.0 015.35-1.44 28.942 28.942.0 016.893-.72 10.015 10.015.0 011.646.102 14.058 14.058.0 011.955.206c.618.103 1.235.206 1.955.309.617.103 1.235.309 1.646.41l-1.44 6.998" class="cls-1"/><path id="nnnnnnn" d="M287.735 44.144a49.746 49.746.0 0112.655-1.646 15.693 15.693.0 016.276 1.028 8.813 8.813.0 014.012 2.778 12.018 12.018.0 012.058 4.32 22.95 22.95.0 01.617 5.557v16.77h-8.437V57.21c0-2.675-.308-4.63-1.028-5.762s-2.058-1.646-4.013-1.646a13.116 13.116.0 00-1.955.103 10.193 10.193.0 00-1.85.206v22.943h-8.335v-28.91" class="cls-1"/><path id="eeeeeee1" d="M319.63 58.239a17.556 17.556.0 011.233-6.893 15.745 15.745.0 013.19-4.94 11.99 11.99.0 014.527-2.982 13.75 13.75.0 015.35-1.03 13.168 13.168.0 019.98 3.91c2.468 2.572 3.703 6.38 3.703 11.317a9.412 9.412.0 01-.103 1.647c0 .514-.103 1.028-.103 1.543h-19.136a5.64 5.64.0 002.47 4.115 9.789 9.789.0 005.76 1.543 21.805 21.805.0 004.528-.411 18.455 18.455.0 003.703-1.03l1.132 6.894c-.41.206-1.029.412-1.852.72a10.37 10.37.0 01-2.572.515 23.226 23.226.0 01-2.984.41c-1.028.104-2.16.207-3.189.207a18.09 18.09.0 01-6.996-1.234 15.148 15.148.0 01-4.938-3.19 14.85 14.85.0 01-2.88-4.938 24.16 24.16.0 01-.824-6.173m19.856-3.292a6.653 6.653.0 00-.41-2.058 6.255 6.255.0 00-.927-1.852 4.915 4.915.0 00-4.116-1.852 6.216 6.216.0 00-2.469.514 4.092 4.092.0 00-1.646 1.235 5.396 5.396.0 00-1.029 1.852 15.037 15.037.0 00-.514 2.058h11.111" class="cls-1"/><path id="ttttttt" d="M353.89 35.707l8.435-1.337v8.745h10.083v6.995h-10.083v10.494a8.273 8.273.0 00.926 4.218c.618 1.03 1.955 1.544 3.807 1.544a25.227 25.227.0 002.778-.206 16.728 16.728.0 002.675-.72l1.234 6.584a16.386 16.386.0 01-3.395 1.029 19.779 19.779.0 01-4.63.41 15.723 15.723.0 01-5.76-.924 9.522 9.522.0 01-3.602-2.573 10.208 10.208.0 01-1.955-4.115 26.665 26.665.0 01-.514-5.247V35.707" class="cls-1"/><path id="eeeeeee2" d="M376.73 58.239a17.556 17.556.0 011.234-6.893 15.744 15.744.0 013.19-4.94 11.99 11.99.0 014.526-2.982 13.75 13.75.0 015.35-1.03 13.168 13.168.0 019.98 3.91c2.47 2.572 3.703 6.38 3.703 11.317a9.413 9.413.0 01-.103 1.647c0 .514-.103 1.028-.103 1.543h-19.136a5.64 5.64.0 002.47 4.115 9.789 9.789.0 005.76 1.543 21.805 21.805.0 004.528-.411 18.455 18.455.0 003.703-1.03l1.132 6.894c-.41.206-1.029.412-1.852.72a10.371 10.371.0 01-2.572.515 23.226 23.226.0 01-2.983.41c-1.03.104-2.16.207-3.19.207a18.09 18.09.0 01-6.996-1.234 15.147 15.147.0 01-4.938-3.19 14.85 14.85.0 01-2.88-4.938 20.343 20.343.0 01-.824-6.173m19.754-3.292a6.652 6.652.0 00-.412-2.058 6.254 6.254.0 00-.926-1.852 4.915 4.915.0 00-4.115-1.852 6.216 6.216.0 00-2.47.514 4.092 4.092.0 00-1.646 1.235 5.395 5.395.0 00-1.028 1.852 15.037 15.037.0 00-.515 2.058h11.112" class="cls-1"/><path id="sssssss" d="M419.631 66.778a8.454 8.454.0 003.293-.411 1.802 1.802.0 00.925-1.75c0-.72-.41-1.234-1.234-1.748a19.516 19.516.0 00-3.807-1.75c-1.337-.514-2.572-1.028-3.6-1.543a10.286 10.286.0 01-2.676-1.852 8.046 8.046.0 01-1.749-2.675 9.968 9.968.0 01-.617-3.703 7.828 7.828.0 013.086-6.585c2.058-1.646 4.94-2.47 8.54-2.47a29.267 29.267.0 015.247.515 19.02 19.02.0 013.91 1.03l-1.44 6.584a122.23 122.23.0 00-3.19-.926 14.394 14.394.0 00-3.807-.412c-2.675.0-3.91.72-3.91 2.16a3.004 3.004.0 00.206.927 1.728 1.728.0 00.72.823c.31.206.823.514 1.338.823.617.308 1.337.514 2.263.926a33.94 33.94.0 014.63 2.057 7.682 7.682.0 012.778 2.16 5.374 5.374.0 011.44 2.573 10.677 10.677.0 01.412 3.292 7.669 7.669.0 01-3.293 6.688c-2.16 1.543-5.247 2.263-9.362 2.263a23.783 23.783.0 01-6.584-.72 18.78 18.78.0 01-3.6-1.132l1.44-6.893a31.442 31.442.0 004.423 1.337 18.932 18.932.0 004.218.412" class="cls-1"/></g></g><path d="M4.233 60.98h4.881v3.877h-4.88z" class="cls-1"/><path d="M62.304 58.789a1.65 1.65.0 00-.393-.03 1.694 1.694.0 00-.655.17 1.712 1.712.0 00-.829 2.218l-.012.017 3.92 9.47a20.008 20.008.0 008.087-10.16l-10.1-1.705zm-15.717 1.34a1.71 1.71.0 00-1.64-1.33 1.68 1.68.0 00-.337.03l-.017-.02-10.013 1.7a20.084 20.084.0 008.062 10.087l3.88-9.376-.03-.037a1.693 1.693.0 00.095-1.053zm8.386 3.678a1.709 1.709.0 00-3.014.004h-.008l-4.924 8.904a20.057 20.057.0 0010.946.563q1.01-.23 1.973-.551l-4.936-8.92zm15.588-20.682-7.576 6.78.004.022a1.712 1.712.0 00.671 2.939l.01.04 9.813 2.828a20.352 20.352.0 00-2.922-12.61zm-14.075.759a1.712 1.712.0 002.718 1.305l.03.013 8.29-5.878A20.155 20.155.0 0055.901 33.72l.576 10.16zm-8.779 1.343a1.71 1.71.0 002.714-1.31l.042-.02.576-10.176a20.533 20.533.0 00-2.069.356 19.979 19.979.0 00-9.623 5.244l8.344 5.915zm-4.448 7.689a1.71 1.71.0 00.672-2.94l.008-.04-7.618-6.814a19.973 19.973.0 00-2.835 12.645l9.765-2.818zm7.4 2.993 2.81 1.35 2.801-1.347.696-3.025-1.939-2.425h-3.12l-1.946 2.42z" class="cls-2"/><path d="M99.925 61.869l-8.008-34.783a6.252 6.252.0 00-3.352-4.17L56.151 7.44a6.246 6.246.0 00-5.38.0L18.364 22.924a6.25 6.25.0 00-3.353 4.17L7.016 61.876a6.12 6.12.0 00-.002 2.67 6.206 6.206.0 00.226.79 6.022 6.022.0 00.617 1.253c.11.168.226.33.352.489l22.432 27.89c.098.12.206.232.313.345a6.17 6.17.0 001.183.98 6.4 6.4.0 001.773.77 6.112 6.112.0 001.576.218h.35l35.623-.008a5.976 5.976.0 00.648-.038 6.19 6.19.0 00.914-.174 6.372 6.372.0 00.635-.203q.244-.09.48-.2a6.407 6.407.0 00.68-.377 6.115 6.115.0 001.488-1.317l.684-.85 21.74-27.045a6.06 6.06.0 00.97-1.74 6.283 6.283.0 00.23-.792 6.105 6.105.0 00-.003-2.67zm-33.62 13.528a6.67 6.67.0 00.322.783 1.523 1.523.0 00-.15 1.144 18.097 18.097.0 001.72 3.08 16.123 16.123.0 011.04 1.546c.078.145.18.369.254.522a1.949 1.949.0 11-3.507 1.658c-.074-.152-.177-.354-.24-.497a16.21 16.21.0 01-.563-1.778 18.067 18.067.0 00-1.33-3.262 1.533 1.533.0 00-.99-.601c-.063-.107-.293-.528-.416-.746A25.104 25.104.0 0144.543 77.2l-.439.796a1.576 1.576.0 00-.836.407 13.567 13.567.0 00-1.502 3.485 16.04 16.04.0 01-.56 1.778c-.062.142-.166.342-.24.493v.004l-.003.004a1.948 1.948.0 11-3.502-1.662c.073-.154.171-.377.248-.522a16.168 16.168.0 011.04-1.55 18.95 18.95.0 001.756-3.156 1.925 1.925.0 00-.173-1.097l.353-.846A25.244 25.244.0 0129.498 61.367l-.845.144a2.151 2.151.0 00-1.116-.393 18.167 18.167.0 00-3.38.995 16.355 16.355.0 01-1.742.667c-.14.038-.342.077-.502.112-.013.004-.024.01-.037.013l-.03.003a1.947 1.947.0 11-.86-3.78l.027-.007.017-.005c.162-.038.37-.092.518-.12a16.212 16.212.0 011.861-.15 18.105 18.105.0 003.477-.571 2.682 2.682.0 00.834-.841l.812-.237a25.102 25.102.0 013.96-17.5l-.623-.554a2.155 2.155.0 00-.39-1.12 18.094 18.094.0 00-2.885-2.027 16.202 16.202.0 01-1.608-.94c-.118-.088-.274-.22-.402-.324l-.029-.02a2.056 2.056.0 01-.477-2.86 1.869 1.869.0 011.546-.684 2.312 2.312.0 011.352.51c.132.104.313.242.43.343a16.205 16.205.0 011.278 1.356A18.103 18.103.0 0033.3 35.74a1.532 1.532.0 001.152.112c.111.082.486.35.7.497a24.953 24.953.0 0112.675-7.241 25.302 25.302.0 013.507-.54l.046-.82a2.115 2.115.0 00.63-1.003 18.142 18.142.0 00-.216-3.518 16.306 16.306.0 01-.265-1.845c-.005-.141.003-.336.005-.497.0-.018-.005-.036-.005-.054a1.95 1.95.0 113.88-.002c0 .17.01.396.004.552a16.14 16.14.0 01-.266 1.844 18.169 18.169.0 00-.22 3.519 1.537 1.537.0 00.634.97c.007.14.03.608.047.866a25.422 25.422.0 0116.102 7.78l.738-.527a2.156 2.156.0 001.177-.128 18.17 18.17.0 002.615-2.366 16.095 16.095.0 011.281-1.356c.12-.102.3-.24.43-.343a1.95 1.95.0 112.417 3.033c-.13.105-.302.252-.427.345a16.133 16.133.0 01-1.612.94 18.153 18.153.0 00-2.885 2.027 1.534 1.534.0 00-.364 1.099c-.108.099-.487.435-.688.617a25.205 25.205.0 014.041 17.458l.783.228a2.181 2.181.0 00.837.842 18.14 18.14.0 003.478.572 16.384 16.384.0 011.86.149c.163.03.4.095.565.133a1.947 1.947.0 11-.863 3.78l-.028-.004c-.013-.003-.025-.01-.038-.013-.16-.035-.36-.07-.5-.107a16.154 16.154.0 01-1.74-.672 18.146 18.146.0 00-3.385-.995 1.534 1.534.0 00-1.086.403q-.413-.08-.829-.145A25.243 25.243.0 0166.305 75.397z" class="cls-2"/><path d="M104.153 62.76l-8.736-37.947a6.82 6.82.0 00-3.658-4.55L56.397 3.38a6.814 6.814.0 00-5.87.0L15.168 20.273a6.82 6.82.0 00-3.659 4.548L2.79 62.77a6.742 6.742.0 00.916 5.14 6.526 6.526.0 00.385.535l24.474 30.43a6.885 6.885.0 005.285 2.522l39.247-.01a6.888 6.888.0 005.286-2.518l24.465-30.433a6.766 6.766.0 001.306-5.675zm-4.227 1.778a6.285 6.285.0 01-.229.792 6.06 6.06.0 01-.97 1.74l-21.74 27.044-.683.85a6.115 6.115.0 01-1.489 1.318 6.41 6.41.0 01-.678.378q-.236.109-.48.198a6.373 6.373.0 01-.636.204 6.191 6.191.0 01-.914.174 5.973 5.973.0 01-.648.038l-35.624.008h-.349a6.113 6.113.0 01-1.576-.217 6.4 6.4.0 01-1.772-.771 6.17 6.17.0 01-1.184-.98c-.107-.113-.215-.224-.313-.345L8.21 67.079q-.188-.236-.352-.49a6.022 6.022.0 01-.617-1.253 6.207 6.207.0 01-.226-.79 6.12 6.12.0 01.002-2.67l7.995-34.783a6.25 6.25.0 013.353-4.17L50.772 7.442a6.246 6.246.0 015.38.0l32.413 15.476a6.252 6.252.0 013.352 4.17l8.008 34.783a6.105 6.105.0 01.001 2.669z" class="cls-1"/><path d="M85.955 59.083c-.166-.038-.402-.103-.564-.133a16.382 16.382.0 00-1.86-.15 18.14 18.14.0 01-3.479-.571 2.18 2.18.0 01-.837-.842l-.783-.228a25.205 25.205.0 00-4.04-17.458c.2-.182.58-.518.687-.617a1.534 1.534.0 01.364-1.1 18.154 18.154.0 012.885-2.026 16.127 16.127.0 001.612-.94c.125-.093.296-.24.427-.345a1.95 1.95.0 10-2.416-3.033c-.132.104-.312.24-.43.343a16.09 16.09.0 00-1.282 1.356 18.17 18.17.0 01-2.615 2.366 2.156 2.156.0 01-1.177.128l-.738.527a25.422 25.422.0 00-16.102-7.78c-.018-.258-.04-.725-.047-.866a1.537 1.537.0 01-.633-.97 18.172 18.172.0 01.22-3.52 16.137 16.137.0 00.264-1.843c.006-.156-.003-.383-.003-.552a1.95 1.95.0 10-3.88.002c0 .018.004.036.005.054-.002.16-.01.356-.005.497a16.308 16.308.0 00.265 1.845 18.143 18.143.0 01.216 3.518 2.115 2.115.0 01-.63 1.003l-.046.82a25.302 25.302.0 00-3.507.54 24.953 24.953.0 00-12.674 7.24q-.354-.243-.7-.496a1.532 1.532.0 01-1.153-.112 18.1 18.1.0 01-2.615-2.363 16.206 16.206.0 00-1.277-1.356c-.118-.101-.299-.24-.43-.344a2.312 2.312.0 00-1.353-.51 1.869 1.869.0 00-1.546.684 2.056 2.056.0 00.477 2.86l.03.02c.127.105.283.238.401.324a16.202 16.202.0 001.608.94 18.094 18.094.0 012.885 2.029 2.155 2.155.0 01.39 1.119l.621.555a25.102 25.102.0 00-3.958 17.5l-.812.236a2.682 2.682.0 01-.834.84 18.106 18.106.0 01-3.477.573 16.212 16.212.0 00-1.86.15c-.15.027-.357.08-.519.12l-.017.004-.028.008a1.947 1.947.0 10.862 3.78l.03-.004c.012-.003.023-.01.036-.012.16-.036.361-.075.502-.113a16.358 16.358.0 001.74-.667 18.167 18.167.0 013.382-.995 2.151 2.151.0 011.115.394l.846-.145a25.244 25.244.0 0011.187 13.967l-.353.846a1.925 1.925.0 01.173 1.097 18.949 18.949.0 01-1.756 3.155 16.173 16.173.0 00-1.04 1.55c-.077.146-.175.37-.249.523a1.948 1.948.0 103.503 1.662l.003-.004v-.004c.074-.152.178-.351.24-.493a16.04 16.04.0 00.56-1.778 13.567 13.567.0 011.502-3.485 1.576 1.576.0 01.836-.408l.44-.795a25.104 25.104.0 0017.901.045c.123.22.353.64.414.746a1.533 1.533.0 01.99.602 18.067 18.067.0 011.332 3.262 16.219 16.219.0 00.563 1.778c.063.143.166.345.24.497a1.949 1.949.0 103.507-1.658c-.074-.153-.176-.377-.253-.522a16.121 16.121.0 00-1.04-1.546 18.095 18.095.0 01-1.72-3.08 1.523 1.523.0 01.15-1.144 6.671 6.671.0 01-.324-.783A25.243 25.243.0 0077.486 61.33c.251.04.688.116.83.145a1.534 1.534.0 011.085-.403 18.144 18.144.0 013.383.995 16.149 16.149.0 001.741.672c.14.037.34.072.501.107.013.004.025.01.038.013l.028.004a1.947 1.947.0 10.863-3.78zM67.523 39.325l-8.29 5.877-.029-.013a1.711 1.711.0 01-2.718-1.305l-.009-.004-.576-10.16a20.155 20.155.0 0111.622 5.605zM51.906 50.46h3.12l1.94 2.425-.696 3.025-2.802 1.348-2.81-1.351-.697-3.026zM48.97 34.075a20.535 20.535.0 012.07-.356l-.577 10.175-.042.02a1.71 1.71.0 01-2.714 1.31l-.016.01-8.344-5.916a19.98 19.98.0 019.623-5.243zm-12.649 9.047 7.618 6.813-.008.042a1.71 1.71.0 01-.672 2.939l-.008.033-9.765 2.818a19.973 19.973.0 012.835-12.645zm10.2 18.1-3.88 9.375a20.084 20.084.0 01-8.06-10.088l10.012-1.7.017.022a1.68 1.68.0 01.336-.03 1.71 1.71.0 011.546 2.383zm11.452 12.057a20.057 20.057.0 01-10.946-.563l4.924-8.904h.008a1.712 1.712.0 013.014-.003h.037l4.936 8.919q-.96.32-1.973.55zm6.362-2.644-3.92-9.471.012-.017a1.712 1.712.0 01.83-2.217 1.694 1.694.0 01.654-.17 1.65 1.65.0 01.393.029l.017-.021 10.101 1.707a20.008 20.008.0 01-8.087 10.16zm9.148-14.901-9.814-2.827-.009-.041a1.712 1.712.0 01-.67-2.94l-.005-.02 7.576-6.78a20.352 20.352.0 012.922 12.608z" class="cls-1"/></svg></span><span class=navbar-brand__name>Kubernetes</span></a><div class="td-navbar-nav-scroll d-none d-md-block ms-xl-auto" id=main_navbar><ul class="navbar-nav mt-lg-0"><li class="nav-item me-4 mb-2 mb-lg-0"><a class=nav-link href=/docs/home/><span>Documentation</span></a></li><li class="nav-item me-4 mb-2 mb-lg-0"><a class=nav-link href=/blog/><span>Kubernetes Blog</span></a></li><li class="nav-item me-4 mb-2 mb-lg-0"><a class=nav-link href=/training/><span>Training</span></a></li><li class="nav-item me-4 mb-2 mb-lg-0"><a class=nav-link href=/careers/><span>Careers</span></a></li><li class="nav-item me-4 mb-2 mb-lg-0"><a class=nav-link href=/partners/><span>Partners</span></a></li><li class="nav-item me-4 mb-2 mb-lg-0"><a class=nav-link href=/community/><span>Community</span></a></li><li class="nav-item dropdown me-4 d-none d-lg-block"><div class=dropdown><a class="nav-link dropdown-toggle" href=# role=button data-bs-toggle=dropdown aria-haspopup=true aria-expanded=false>Versions</a><ul class=dropdown-menu><li><a class=dropdown-item href=/releases>Release Information</a></li><li><a class=dropdown-item href=https://kubernetes.io>v1.37</a></li><li><a class=dropdown-item href=https://v1-36.docs.kubernetes.io>v1.36</a></li><li><a class=dropdown-item href=https://v1-35.docs.kubernetes.io>v1.35</a></li><li><a class=dropdown-item href=https://v1-34.docs.kubernetes.io>v1.34</a></li><li><a class=dropdown-item href=https://v1-33.docs.kubernetes.io>v1.33</a></li></ul></div></li><li class="nav-item dropdown me-xl-4 d-none d-lg-block"><div class=dropdown><a class="nav-link dropdown-toggle" href=# role=button data-bs-toggle=dropdown aria-haspopup=true aria-expanded=false>English</a><ul class="dropdown-menu dropdown-menu-end"><li><a class=dropdown-item href=/zh-cn/docs/tasks/debug/debug-application/>中文 (Chinese)</a></li><li><a class=dropdown-item href=/ja/docs/tasks/debug/debug-application/>日本語 (Japanese)</a></li><li><a class=dropdown-item href=/ko/docs/tasks/debug/debug-application/>한국어 (Korean)</a></li><li><a class=dropdown-item href=/pt-br/docs/tasks/debug/debug-application/>Português (Portuguese)</a></li><li><a class=dropdown-item href=/es/docs/tasks/debug/debug-application/>Español (Spanish)</a></li><li><span class="dropdown-item text-muted" title="This page is not available in বাংলা (Bengali)">বাংলা (Bengali)
+<a href=/bn/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in Français (French)">Français (French)
+<a href=/fr/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in Deutsch (German)">Deutsch (German)
+<a href=/de/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in हिन्दी (Hindi)">हिन्दी (Hindi)
+<a href=/hi/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in Bahasa Indonesia (Indonesian)">Bahasa Indonesia (Indonesian)
+<a href=/id/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in Italiano (Italian)">Italiano (Italian)
+<a href=/it/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in فارسی (Persian)">فارسی (Persian)
+<a href=/fa/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in Polski (Polish)">Polski (Polish)
+<a href=/pl/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in Русский (Russian)">Русский (Russian)
+<a href=/ru/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in Українська (Ukrainian)">Українська (Ukrainian)
+<a href=/uk/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li><li><span class="dropdown-item text-muted" title="This page is not available in Tiếng Việt (Vietnamese)">Tiếng Việt (Vietnamese)
+<a href=/vi/ class=ms-1 data-auto-burger-exclude><i class="fas fa-home fa-xs"></i></a></span></li></ul></div></li><li class="td-light-dark-menu nav-item dropdown"><svg class="d-none"><symbol id="check2" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5.0 010 .708l-7 7a.5.5.0 01-.708.0l-3.5-3.5a.5.5.0 11.708-.708L6.5 10.293l6.646-6.647a.5.5.0 01.708.0z"/></symbol><symbol id="circle-half" viewBox="0 0 16 16"><path d="M8 15A7 7 0 108 1v14zm0 1A8 8 0 118 0a8 8 0 010 16z"/></symbol><symbol id="moon-stars-fill" viewBox="0 0 16 16"><path d="M6 .278a.768.768.0 01.08.858 7.208 7.208.0 00-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527.0 1.04-.055 1.533-.16a.787.787.0 01.81.316.733.733.0 01-.031.893A8.349 8.349.0 018.344 16C3.734 16 0 12.286.0 7.71.0 4.266 2.114 1.312 5.124.06A.752.752.0 016 .278z"/><path d="M10.794 3.148a.217.217.0 01.412.0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217.0 010 .412l-1.162.387A1.734 1.734.0 0011.593 7.69l-.387 1.162a.217.217.0 01-.412.0l-.387-1.162A1.734 1.734.0 009.31 6.593l-1.162-.387a.217.217.0 010-.412l1.162-.387a1.734 1.734.0 001.097-1.097l.387-1.162zM13.863.099a.145.145.0 01.274.0l.258.774c.115.346.386.617.732.732l.774.258a.145.145.0 010 .274l-.774.258a1.156 1.156.0 00-.732.732l-.258.774a.145.145.0 01-.274.0l-.258-.774a1.156 1.156.0 00-.732-.732l-.774-.258a.145.145.0 010-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/></symbol><symbol id="sun-fill" viewBox="0 0 16 16"><path d="M8 12a4 4 0 100-8 4 4 0 000 8zM8 0a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 0zm0 13a.5.5.0 01.5.5v2a.5.5.0 01-1 0v-2A.5.5.0 018 13zm8-5a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2a.5.5.0 01.5.5zM3 8a.5.5.0 01-.5.5h-2a.5.5.0 010-1h2A.5.5.0 013 8zm10.657-5.657a.5.5.0 010 .707l-1.414 1.415a.5.5.0 11-.707-.708l1.414-1.414a.5.5.0 01.707.0zm-9.193 9.193a.5.5.0 010 .707L3.05 13.657a.5.5.0 01-.707-.707l1.414-1.414a.5.5.0 01.707.0zm9.193 2.121a.5.5.0 01-.707.0l-1.414-1.414a.5.5.0 01.707-.707l1.414 1.414a.5.5.0 010 .707zM4.464 4.465a.5.5.0 01-.707.0L2.343 3.05a.5.5.0 11.707-.707l1.414 1.414a.5.5.0 010 .708z"/></symbol></svg>
+<button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" id=bd-theme type=button aria-expanded=false data-bs-toggle=dropdown data-bs-display=static aria-label="Toggle theme (auto)"><svg class="bi my-1 theme-icon-active"><use href="#circle-half"/></svg></button><ul class="dropdown-menu dropdown-menu-end" aria-labelledby=bd-theme-text><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=light aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#sun-fill"/></svg>
+Light<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center" data-bs-theme-value=dark aria-pressed=false>
+<svg class="bi me-2 opacity-50"><use href="#moon-stars-fill"/></svg>
+Dark<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li><li><button type=button class="dropdown-item d-flex align-items-center active" data-bs-theme-value=auto aria-pressed=true>
+<svg class="bi me-2 opacity-50"><use href="#circle-half"/></svg>
+Auto<svg class="bi ms-auto d-none"><use href="#check2"/></svg></button></li></ul></li></ul></div><div class="navbar-nav d-none k8s-1500-block"><div class=td-search><div class=td-search__icon></div><input type=search class="td-search__input form-control dark-theme-focus td-search-input" placeholder="Search this site" aria-label="Search this site" autocomplete=off data-search-page=/search/></div></div><button id=hamburger class="btn fas fa-bars" onclick=kub.toggleMenu() data-auto-burger-exclude></button></nav></header><div class="container-fluid td-outer"><div class=td-main><div class="row flex-xl-nowrap"><main class="col-12 col-md-9 col-xl-8 ps-md-5" role=main><div class=td-content><div class="pageinfo pageinfo-primary d-print-none"><p>This is the multi-page printable view of this section.
+<a href=# onclick="return print(),!1">Click here to print</a>.</p><p><a href=/docs/tasks/debug/debug-application/>Return to the regular view of this page</a>.</p></div><h1 class=title>Troubleshooting Applications</h1><div class=lead>Debugging common containerized application issues.</div><ul><li>1: <a href=#pg-abb72792fa997869a6d241ca28ea225e>Debug Pods</a></li><li>2: <a href=#pg-68c4fd0542b7d39f8d36435ef83bd57b>Debug Services</a></li><li>3: <a href=#pg-089001d4003f033e21602adcb11cd277>Debug a StatefulSet</a></li><li>4: <a href=#pg-655b47c523b6f1b52d25e520625abccb>Determine the Reason for Pod Failure</a></li><li>5: <a href=#pg-43445f3208669d4078e87dbdbeed8473>Debug Init Containers</a></li><li>6: <a href=#pg-132acc7efbd72bd677945eda3b6c6d38>Debug Running Pods</a></li><li>7: <a href=#pg-09530217eead8a801ead3ef165c2f591>Get a Shell to a Running Container</a></li></ul><div class=content><p>This doc contains a set of resources for fixing issues with containerized applications. It covers things like common issues with Kubernetes resources (like Pods, Services, or StatefulSets), advice on making sense of container termination messages, and ways to debug running containers.</p></div></div><div class=td-content><h1 id=pg-abb72792fa997869a6d241ca28ea225e>1 - Debug Pods</h1><p>This guide is to help users debug applications that are deployed into Kubernetes
+and not behaving correctly. This is <em>not</em> a guide for people who want to debug their cluster.
+For that you should check out <a href=/docs/tasks/debug/debug-cluster/>this guide</a>.</p><h2 id=diagnosing-the-problem>Diagnosing the problem<a class=td-heading-self-link href=#diagnosing-the-problem aria-label="Heading self-link"></a></h2><p>The first step in troubleshooting is triage. What is the problem?
+Is it your Pods, your Replication Controller or your Service?</p><ul><li><a href=#debugging-pods>Debugging Pods</a></li><li><a href=#debugging-replication-controllers>Debugging Replication Controllers</a></li><li><a href=#debugging-services>Debugging Services</a></li></ul><h3 id=debugging-pods>Debugging Pods<a class=td-heading-self-link href=#debugging-pods aria-label="Heading self-link"></a></h3><p>The first step in debugging a Pod is taking a look at it. Check the current
+state of the Pod and recent events with the following command:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl describe pods <span class=si>${</span><span class=nv>POD_NAME</span><span class=si>}</span>
+</span></span></code></pre></div><p>Look at the state of the containers in the pod. Are they all <code>Running</code>?
+Have there been recent restarts?</p><p>Continue debugging depending on the state of the pods.</p><h4 id=my-pod-stays-pending>My pod stays pending<a class=td-heading-self-link href=#my-pod-stays-pending aria-label="Heading self-link"></a></h4><p>If a Pod is stuck in <code>Pending</code> it means that it can not be scheduled onto a node.
+Generally this is because there are insufficient resources of one type or another
+that prevent scheduling. Look at the output of the <code>kubectl describe ...</code> command above.
+There should be messages from the scheduler about why it can not schedule your pod.
+Reasons include:</p><ul><li><p><strong>You don't have enough resources</strong>: You may have exhausted the supply of CPU
+or Memory in your cluster, in this case you need to delete Pods, adjust resource
+requests, or add new nodes to your cluster. See <a href=/docs/concepts/configuration/manage-resources-containers/>Compute Resources document</a>
+for more information.</p></li><li><p><strong>You are using <code>hostPort</code></strong>: When you bind a Pod to a <code>hostPort</code> there are a
+limited number of places that pod can be scheduled. In most cases, <code>hostPort</code>
+is unnecessary, try using a Service object to expose your Pod. If you do require
+<code>hostPort</code> then you can only schedule as many Pods as there are nodes in your Kubernetes cluster.</p></li></ul><h4 id=my-pod-stays-waiting>My pod stays waiting<a class=td-heading-self-link href=#my-pod-stays-waiting aria-label="Heading self-link"></a></h4><p>If a Pod is stuck in the <code>Waiting</code> state, then it has been scheduled to a worker node,
+but it can't run on that machine. Again, the information from <code>kubectl describe ...</code>
+should be informative. The most common cause of <code>Waiting</code> pods is a failure to pull the image.
+There are three things to check:</p><ul><li>Make sure that you have the name of the image correct.</li><li>Have you pushed the image to the registry?</li><li>Try to manually pull the image to see if the image can be pulled. For example,
+if you use Docker on your PC, run <code>docker pull &lt;image></code>.</li></ul><h4 id=my-pod-stays-terminating>My pod stays terminating<a class=td-heading-self-link href=#my-pod-stays-terminating aria-label="Heading self-link"></a></h4><p>If a Pod is stuck in the <code>Terminating</code> state, it means that a deletion has been
+issued for the Pod, but the control plane is unable to delete the Pod object.</p><p>This typically happens if the Pod has a <a href=/docs/concepts/overview/working-with-objects/finalizers/>finalizer</a>
+and there is an <a href=/docs/reference/access-authn-authz/extensible-admission-controllers/>admission webhook</a>
+installed in the cluster that prevents the control plane from removing the
+finalizer.</p><p>To identify this scenario, check if your cluster has any
+ValidatingWebhookConfiguration or MutatingWebhookConfiguration that target
+<code>UPDATE</code> operations for <code>pods</code> resources.</p><p>If the webhook is provided by a third-party:</p><ul><li>Make sure you are using the latest version.</li><li>Disable the webhook for <code>UPDATE</code> operations.</li><li>Report an issue with the corresponding provider.</li></ul><p>If you are the author of the webhook:</p><ul><li>For a mutating webhook, make sure it never changes immutable fields on
+<code>UPDATE</code> operations. For example, changes to containers are usually not allowed.</li><li>For a validating webhook, make sure that your validation policies only apply
+to new changes. In other words, you should allow Pods with existing violations
+to pass validation. This allows Pods that were created before the validating
+webhook was installed to continue running.</li></ul><h4 id=my-pod-is-crashing-or-otherwise-unhealthy>My pod is crashing or otherwise unhealthy<a class=td-heading-self-link href=#my-pod-is-crashing-or-otherwise-unhealthy aria-label="Heading self-link"></a></h4><p>Once your pod has been scheduled, the methods described in
+<a href=/docs/tasks/debug/debug-application/debug-running-pod/>Debug Running Pods</a>
+are available for debugging.</p><h4 id=my-pod-is-running-but-not-doing-what-i-told-it-to-do>My pod is running but not doing what I told it to do<a class=td-heading-self-link href=#my-pod-is-running-but-not-doing-what-i-told-it-to-do aria-label="Heading self-link"></a></h4><p>If your pod is not behaving as you expected, it may be that there was an error in your
+pod description (e.g. <code>mypod.yaml</code> file on your local machine), and that the error
+was silently ignored when you created the pod. Often a section of the pod description
+is nested incorrectly, or a key name is typed incorrectly, and so the key is ignored.
+For example, if you misspelled <code>command</code> as <code>commnd</code> then the pod will be created but
+will not use the command line you intended it to use.</p><p>The first thing to do is to delete your pod and try creating it again with the <code>--validate</code> option.
+For example, run <code>kubectl apply --validate -f mypod.yaml</code>.
+If you misspelled <code>command</code> as <code>commnd</code> then will give an error like this:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>I0805 10:43:25.129850   <span class=m>46757</span> schema.go:126<span class=o>]</span> unknown field: commnd
+</span></span><span class=line><span class=cl>I0805 10:43:25.129973   <span class=m>46757</span> schema.go:129<span class=o>]</span> this may be a <span class=nb>false</span> alarm, see https://github.com/kubernetes/kubernetes/issues/6842
+</span></span><span class=line><span class=cl>pods/mypod
+</span></span></code></pre></div><p>The next thing to check is whether the pod on the apiserver
+matches the pod you meant to create (e.g. in a yaml file on your local machine).
+For example, run <code>kubectl get pods/mypod -o yaml > mypod-on-apiserver.yaml</code> and then
+manually compare the original pod description, <code>mypod.yaml</code> with the one you got
+back from apiserver, <code>mypod-on-apiserver.yaml</code>. There will typically be some
+lines on the "apiserver" version that are not on the original version. This is
+expected. However, if there are lines on the original that are not on the apiserver
+version, then this may indicate a problem with your pod spec.</p><h3 id=debugging-replication-controllers>Debugging Replication Controllers<a class=td-heading-self-link href=#debugging-replication-controllers aria-label="Heading self-link"></a></h3><p>Replication controllers are fairly straightforward. They can either create Pods or they can't.
+If they can't create pods, then please refer to the
+<a href=#debugging-pods>instructions above</a> to debug your pods.</p><p>You can also use <code>kubectl describe rc ${CONTROLLER_NAME}</code> to introspect events
+related to the replication controller.</p><h3 id=debugging-services>Debugging Services<a class=td-heading-self-link href=#debugging-services aria-label="Heading self-link"></a></h3><p>Services provide load balancing across a set of pods. There are several common problems that can make Services
+not work properly. The following instructions should help debug Service problems.</p><p>First, verify that there are endpoints for the service. For every Service object,
+the apiserver makes one or more <code>EndpointSlice</code> resources available.</p><p>You can view these resources with:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get endpointslices -l kubernetes.io/service-name<span class=o>=</span><span class=si>${</span><span class=nv>SERVICE_NAME</span><span class=si>}</span>
+</span></span></code></pre></div><p>Make sure that the endpoints in the EndpointSlices match up with the number of pods that you expect to be members of your service.
+For example, if your Service is for an nginx container with 3 replicas, you would expect to see three different
+IP addresses in the Service's endpoint slices.</p><h4 id=my-service-is-missing-endpoints>My service is missing endpoints<a class=td-heading-self-link href=#my-service-is-missing-endpoints aria-label="Heading self-link"></a></h4><p>If you are missing endpoints, try listing Pods using the labels in the Service selector.
+For example, that you have a Service with the following selector:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nn>...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>frontend</span><span class=w>
+</span></span></span></code></pre></div><p>You can use:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pods --selector<span class=o>=</span><span class=nv>name</span><span class=o>=</span>nginx,type<span class=o>=</span>frontend
+</span></span></code></pre></div><p>to list pods that match this selector. Verify that the list matches the Pods that you expect to provide your Service.
+Verify that the pod's <code>containerPort</code> matches the Service's <code>targetPort</code></p><h4 id=network-traffic-is-not-forwarded>Network traffic is not forwarded<a class=td-heading-self-link href=#network-traffic-is-not-forwarded aria-label="Heading self-link"></a></h4><p>Please see <a href=/docs/tasks/debug/debug-application/debug-service/>debugging service</a> for more information.</p><h2 id=what-s-next>What's next<a class=td-heading-self-link href=#what-s-next aria-label="Heading self-link"></a></h2><p>If none of the above solves your problem, follow the instructions in
+<a href=/docs/tasks/debug/debug-application/debug-service/>Debugging Service document</a>
+to make sure that your <code>Service</code> is running, has <code>Endpoints</code>, and your <code>Pods</code> are
+actually serving; you have DNS working, iptables rules installed, and kube-proxy
+does not seem to be misbehaving.</p><p>You may also visit <a href=/docs/tasks/debug/>troubleshooting document</a> for more information.</p></div><div class=td-content style=page-break-before:always><h1 id=pg-68c4fd0542b7d39f8d36435ef83bd57b>2 - Debug Services</h1><p>An issue that comes up rather frequently for new installations of Kubernetes is
+that a Service is not working properly. You've run your Pods through a
+Deployment (or other workload controller) and created a Service, but you
+get no response when you try to access it. This document will hopefully help
+you to figure out what's going wrong.</p><h2 id=running-commands-in-a-pod>Running commands in a Pod<a class=td-heading-self-link href=#running-commands-in-a-pod aria-label="Heading self-link"></a></h2><p>For many steps here you will want to see what a Pod running in the cluster
+sees. The simplest way to do this is to run an interactive busybox Pod:</p><pre tabindex=0><code class=language-none data-lang=none>kubectl run -it --rm --restart=Never busybox --image=registry.k8s.io/busybox:1.27.2 sh
+</code></pre><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4>If you don't see a command prompt, try pressing enter.</div><p>If you already have a running Pod that you prefer to use, you can run a
+command in it using:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl <span class=nb>exec</span> &lt;POD-NAME&gt; -c &lt;CONTAINER-NAME&gt; -- &lt;COMMAND&gt;
+</span></span></code></pre></div><h2 id=setup>Setup<a class=td-heading-self-link href=#setup aria-label="Heading self-link"></a></h2><p>For the purposes of this walk-through, let's run some Pods. Since you're
+probably debugging your own Service you can substitute your own details, or you
+can follow along and get a second data point.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl create deployment hostnames --image<span class=o>=</span>registry.k8s.io/serve_hostname
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>deployment.apps/hostnames created
+</code></pre><p><code>kubectl</code> commands will print the type and name of the resource created or mutated, which can then be used in subsequent commands.</p><p>Let's scale the deployment to 3 replicas.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl scale deployment hostnames --replicas<span class=o>=</span><span class=m>3</span>
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>deployment.apps/hostnames scaled
+</code></pre><p>Note that this is the same as if you had started the Deployment with the following
+YAML:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>hostnames</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hostnames</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>hostnames</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>3</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>hostnames</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hostnames</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>registry.k8s.io/serve_hostname</span><span class=w>
+</span></span></span></code></pre></div><p>The label "app" is automatically set by <code>kubectl create deployment</code> to the name of the
+Deployment.</p><p>You can confirm your Pods are running:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pods -l <span class=nv>app</span><span class=o>=</span>hostnames
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>NAME                        READY     STATUS    RESTARTS   AGE
+hostnames-632524106-bbpiw   1/1       Running   0          2m
+hostnames-632524106-ly40y   1/1       Running   0          2m
+hostnames-632524106-tlaok   1/1       Running   0          2m
+</code></pre><p>You can also confirm that your Pods are serving. You can get the list of
+Pod IP addresses and test them directly.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pods -l <span class=nv>app</span><span class=o>=</span>hostnames <span class=se>\
+</span></span></span><span class=line><span class=cl><span class=se></span>    -o go-template<span class=o>=</span><span class=s1>&#39;{{range .items}}{{.status.podIP}}{{&#34;\n&#34;}}{{end}}&#39;</span>
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>10.244.0.5
+10.244.0.6
+10.244.0.7
+</code></pre><p>The example container used for this walk-through serves its own hostname
+via HTTP on port 9376, but if you are debugging your own app, you'll want to
+use whatever port number your Pods are listening on.</p><p>From within a pod:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=k>for</span> ep in 10.244.0.5:9376 10.244.0.6:9376 10.244.0.7:9376<span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>    wget -qO- <span class=nv>$ep</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></div><p>This should produce something like:</p><pre tabindex=0><code>hostnames-632524106-bbpiw
+hostnames-632524106-ly40y
+hostnames-632524106-tlaok
+</code></pre><p>If you are not getting the responses you expect at this point, your Pods
+might not be healthy or might not be listening on the port you think they are.
+You might find <code>kubectl logs</code> to be useful for seeing what is happening, or
+perhaps you need to <code>kubectl exec</code> directly into your Pods and debug from
+there.</p><p>Assuming everything has gone to plan so far, you can start to investigate why
+your Service doesn't work.</p><h2 id=does-the-service-exist>Does the Service exist?<a class=td-heading-self-link href=#does-the-service-exist aria-label="Heading self-link"></a></h2><p>The astute reader will have noticed that you did not actually create a Service
+yet - that is intentional. This is a step that sometimes gets forgotten, and
+is the first thing to check.</p><p>What would happen if you tried to access a non-existent Service? If
+you have another Pod that consumes this Service by name you would get
+something like:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>wget -O- hostnames
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>Resolving hostnames (hostnames)... failed: Name or service not known.
+wget: unable to resolve host address &#39;hostnames&#39;
+</code></pre><p>The first thing to check is whether that Service actually exists:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get svc hostnames
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>No resources found.
+Error from server (NotFound): services &#34;hostnames&#34; not found
+</code></pre><p>Let's create the Service. As before, this is for the walk-through - you can
+use your own Service's details here.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl expose deployment hostnames --port<span class=o>=</span><span class=m>80</span> --target-port<span class=o>=</span><span class=m>9376</span>
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>service/hostnames exposed
+</code></pre><p>And read it back:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get svc hostnames
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>NAME        TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+hostnames   ClusterIP   10.0.1.175   &lt;none&gt;        80/TCP    5s
+</code></pre><p>Now you know that the Service exists.</p><p>As before, this is the same as if you had started the Service with YAML:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>hostnames</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>hostnames</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>hostnames</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>port</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>targetPort</span><span class=p>:</span><span class=w> </span><span class=m>9376</span><span class=w>
+</span></span></span></code></pre></div><p>In order to highlight the full range of configuration, the Service you created
+here uses a different port number than the Pods. For many real-world
+Services, these values might be the same.</p><h2 id=any-network-policy-ingress-rules-affecting-the-target-pods>Any Network Policy Ingress rules affecting the target Pods?<a class=td-heading-self-link href=#any-network-policy-ingress-rules-affecting-the-target-pods aria-label="Heading self-link"></a></h2><p>If you have deployed any Network Policy Ingress rules which may affect incoming
+traffic to <code>hostnames-*</code> Pods, these need to be reviewed.</p><p>Please refer to <a href=/docs/concepts/services-networking/network-policies/>Network Policies</a> for more details.</p><h2 id=does-the-service-work-by-dns-name>Does the Service work by DNS name?<a class=td-heading-self-link href=#does-the-service-work-by-dns-name aria-label="Heading self-link"></a></h2><p>One of the most common ways that clients consume a Service is through a DNS
+name.</p><p>From a Pod in the same Namespace:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>nslookup hostnames
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      hostnames
+Address 1: 10.0.1.175 hostnames.default.svc.cluster.local
+</code></pre><p>If this fails, perhaps your Pod and Service are in different
+Namespaces, try a namespace-qualified name (again, from within a Pod):</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>nslookup hostnames.default
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      hostnames.default
+Address 1: 10.0.1.175 hostnames.default.svc.cluster.local
+</code></pre><p>If this works, you'll need to adjust your app to use a cross-namespace name, or
+run your app and Service in the same Namespace. If this still fails, try a
+fully-qualified name:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>nslookup hostnames.default.svc.cluster.local
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      hostnames.default.svc.cluster.local
+Address 1: 10.0.1.175 hostnames.default.svc.cluster.local
+</code></pre><p>Note the suffix here: "default.svc.cluster.local". The "default" is the
+Namespace you're operating in. The "svc" denotes that this is a Service.
+The "cluster.local" is your cluster domain, which COULD be different in your
+own cluster.</p><p>You can also try this from a Node in the cluster:</p><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4>10.0.0.10 is the cluster's DNS Service IP, yours might be different.</div><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>nslookup hostnames.default.svc.cluster.local 10.0.0.10
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>Server:         10.0.0.10
+Address:        10.0.0.10#53
+
+Name:   hostnames.default.svc.cluster.local
+Address: 10.0.1.175
+</code></pre><p>If you are able to do a fully-qualified name lookup but not a relative one, you
+need to check that your <code>/etc/resolv.conf</code> file in your Pod is correct. From
+within a Pod:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>cat /etc/resolv.conf
+</span></span></code></pre></div><p>You should see something like:</p><pre tabindex=0><code>nameserver 10.0.0.10
+search default.svc.cluster.local svc.cluster.local cluster.local example.com
+options ndots:5
+</code></pre><p>The <code>nameserver</code> line must indicate your cluster's DNS Service. This is
+passed into <code>kubelet</code> with the <code>--cluster-dns</code> flag.</p><p>The <code>search</code> line must include an appropriate suffix for you to find the
+Service name. In this case it is looking for Services in the local
+Namespace ("default.svc.cluster.local"), Services in all Namespaces
+("svc.cluster.local"), and lastly for names in the cluster ("cluster.local").
+Depending on your own install you might have additional records after that (up
+to 6 total). The cluster suffix is passed into <code>kubelet</code> with the
+<code>--cluster-domain</code> flag. Throughout this document, the cluster suffix is
+assumed to be "cluster.local". Your own clusters might be configured
+differently, in which case you should change that in all of the previous
+commands.</p><p>The <code>options</code> line must set <code>ndots</code> high enough that your DNS client library
+considers search paths at all. Kubernetes sets this to 5 by default, which is
+high enough to cover all of the DNS names it generates.</p><h3 id=does-any-service-exist-in-dns>Does any Service work by DNS name?<a class=td-heading-self-link href=#does-any-service-exist-in-dns aria-label="Heading self-link"></a></h3><p>If the above still fails, DNS lookups are not working for your Service. You
+can take a step back and see what else is not working. The Kubernetes master
+Service should always work. From within a Pod:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>nslookup kubernetes.default
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>Server:    10.0.0.10
+Address 1: 10.0.0.10 kube-dns.kube-system.svc.cluster.local
+
+Name:      kubernetes.default
+Address 1: 10.0.0.1 kubernetes.default.svc.cluster.local
+</code></pre><p>If this fails, please see the <a href=#is-the-kube-proxy-working>kube-proxy</a> section
+of this document, or even go back to the top of this document and start over,
+but instead of debugging your own Service, debug the DNS Service.</p><h2 id=does-the-service-work-by-ip>Does the Service work by IP?<a class=td-heading-self-link href=#does-the-service-work-by-ip aria-label="Heading self-link"></a></h2><p>Assuming you have confirmed that DNS works, the next thing to test is whether your
+Service works by its IP address. From a Pod in your cluster, access the
+Service's IP (from <code>kubectl get</code> above).</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=k>for</span> i in <span class=k>$(</span>seq <span class=m>1</span> 3<span class=k>)</span><span class=p>;</span> <span class=k>do</span> 
+</span></span><span class=line><span class=cl>    wget -qO- 10.0.1.175:80
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></div><p>This should produce something like:</p><pre tabindex=0><code>hostnames-632524106-bbpiw
+hostnames-632524106-ly40y
+hostnames-632524106-tlaok
+</code></pre><p>If your Service is working, you should get correct responses. If not, there
+are a number of things that could be going wrong. Read on.</p><h2 id=is-the-service-defined-correctly>Is the Service defined correctly?<a class=td-heading-self-link href=#is-the-service-defined-correctly aria-label="Heading self-link"></a></h2><p>It might sound silly, but you should really double and triple check that your
+Service is correct and matches your Pod's port. Read back your Service
+and verify it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get service hostnames -o json
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-json data-lang=json><span class=line><span class=cl><span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;kind&#34;</span><span class=p>:</span> <span class=s2>&#34;Service&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;apiVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;v1&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;metadata&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;hostnames&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;namespace&#34;</span><span class=p>:</span> <span class=s2>&#34;default&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;uid&#34;</span><span class=p>:</span> <span class=s2>&#34;428c8b6c-24bc-11e5-936d-42010af0a9bc&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;resourceVersion&#34;</span><span class=p>:</span> <span class=s2>&#34;347189&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;creationTimestamp&#34;</span><span class=p>:</span> <span class=s2>&#34;2015-07-07T15:24:29Z&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;labels&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;app&#34;</span><span class=p>:</span> <span class=s2>&#34;hostnames&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=p>}</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;spec&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;ports&#34;</span><span class=p>:</span> <span class=p>[</span>
+</span></span><span class=line><span class=cl>            <span class=p>{</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;name&#34;</span><span class=p>:</span> <span class=s2>&#34;default&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;protocol&#34;</span><span class=p>:</span> <span class=s2>&#34;TCP&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;port&#34;</span><span class=p>:</span> <span class=mi>80</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;targetPort&#34;</span><span class=p>:</span> <span class=mi>9376</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>                <span class=nt>&#34;nodePort&#34;</span><span class=p>:</span> <span class=mi>0</span>
+</span></span><span class=line><span class=cl>            <span class=p>}</span>
+</span></span><span class=line><span class=cl>        <span class=p>],</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;selector&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>            <span class=nt>&#34;app&#34;</span><span class=p>:</span> <span class=s2>&#34;hostnames&#34;</span>
+</span></span><span class=line><span class=cl>        <span class=p>},</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;clusterIP&#34;</span><span class=p>:</span> <span class=s2>&#34;10.0.1.175&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;type&#34;</span><span class=p>:</span> <span class=s2>&#34;ClusterIP&#34;</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;sessionAffinity&#34;</span><span class=p>:</span> <span class=s2>&#34;None&#34;</span>
+</span></span><span class=line><span class=cl>    <span class=p>},</span>
+</span></span><span class=line><span class=cl>    <span class=nt>&#34;status&#34;</span><span class=p>:</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>        <span class=nt>&#34;loadBalancer&#34;</span><span class=p>:</span> <span class=p>{}</span>
+</span></span><span class=line><span class=cl>    <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></div><ul><li>Is the Service port you are trying to access listed in <code>spec.ports[]</code>?</li><li>Is the <code>targetPort</code> correct for your Pods (some Pods use a different port than the Service)?</li><li>If you meant to use a numeric port, is it a number (9376) or a string "9376"?</li><li>If you meant to use a named port, do your Pods expose a port with the same name?</li><li>Is the port's <code>protocol</code> correct for your Pods?</li></ul><h2 id=does-the-service-have-any-endpointslices>Does the Service have any EndpointSlices?<a class=td-heading-self-link href=#does-the-service-have-any-endpointslices aria-label="Heading self-link"></a></h2><p>If you got this far, you have confirmed that your Service is correctly
+defined and is resolved by DNS. Now let's check that the Pods you ran are
+actually being selected by the Service.</p><p>Earlier you saw that the Pods were running. You can re-check that:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pods -l <span class=nv>app</span><span class=o>=</span>hostnames
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>NAME                        READY     STATUS    RESTARTS   AGE
+hostnames-632524106-bbpiw   1/1       Running   0          1h
+hostnames-632524106-ly40y   1/1       Running   0          1h
+hostnames-632524106-tlaok   1/1       Running   0          1h
+</code></pre><p>The <code>-l app=hostnames</code> argument is a label selector configured on the Service.</p><p>The "AGE" column says that these Pods are about an hour old, which implies that
+they are running fine and not crashing.</p><p>The "RESTARTS" column says that these pods are not crashing frequently or being
+restarted. Frequent restarts could lead to intermittent connectivity issues.
+If the restart count is high, read more about how to <a href=/docs/tasks/debug/debug-application/debug-pods/>debug pods</a>.</p><p>Inside the Kubernetes system is a control loop which evaluates the selector of
+every Service and saves the results into one or more EndpointSlice objects.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get endpointslices -l kubernetes.io/service-name<span class=o>=</span>hostnames
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>NAME              ADDRESSTYPE   PORTS   ENDPOINTS
+</span></span><span class=line><span class=cl>hostnames-ytpni   IPv4          <span class=m>9376</span>    10.244.0.5,10.244.0.6,10.244.0.7
+</span></span></code></pre></div><p>This confirms that the EndpointSlice controller has found the correct Pods for
+your Service. If the <code>ENDPOINTS</code> column is <code>&lt;none></code>, you should check that
+the <code>spec.selector</code> field of your Service actually selects for
+<code>metadata.labels</code> values on your Pods. A common mistake is to have a typo or
+other error, such as the Service selecting for <code>app=hostnames</code>, but the
+Deployment specifying <code>run=hostnames</code>, as in versions previous to 1.18, where
+the <code>kubectl run</code> command could have been also used to create a Deployment.</p><h2 id=are-the-pods-working>Are the Pods working?<a class=td-heading-self-link href=#are-the-pods-working aria-label="Heading self-link"></a></h2><p>At this point, you know that your Service exists and has selected your Pods.
+At the beginning of this walk-through, you verified the Pods themselves.
+Let's check again that the Pods are actually working - you can bypass the
+Service mechanism and go straight to the Pods, as listed by the Endpoints
+above.</p><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4>These commands use the Pod port (9376), rather than the Service port (80).</div><p>From within a Pod:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=k>for</span> ep in 10.244.0.5:9376 10.244.0.6:9376 10.244.0.7:9376<span class=p>;</span> <span class=k>do</span>
+</span></span><span class=line><span class=cl>    wget -qO- <span class=nv>$ep</span>
+</span></span><span class=line><span class=cl><span class=k>done</span>
+</span></span></code></pre></div><p>This should produce something like:</p><pre tabindex=0><code>hostnames-632524106-bbpiw
+hostnames-632524106-ly40y
+hostnames-632524106-tlaok
+</code></pre><p>You expect each Pod in the endpoints list to return its own hostname. If
+this is not what happens (or whatever the correct behavior is for your own
+Pods), you should investigate what's happening there.</p><h2 id=is-the-kube-proxy-working>Is the kube-proxy working?<a class=td-heading-self-link href=#is-the-kube-proxy-working aria-label="Heading self-link"></a></h2><p>If you get here, your Service is running, has EndpointSlices, and your Pods
+are actually serving. At this point, the whole Service proxy mechanism is
+suspect. Let's confirm it, piece by piece.</p><p>The default implementation of Services, and the one used on most clusters, is
+kube-proxy. This is a program that runs on every node and configures one of a
+small set of mechanisms for providing the Service abstraction. If your
+cluster does not use kube-proxy, the following sections will not apply, and you
+will have to investigate whatever implementation of Services you are using.</p><h3 id=is-kube-proxy-running>Is kube-proxy running?<a class=td-heading-self-link href=#is-kube-proxy-running aria-label="Heading self-link"></a></h3><p>Confirm that <code>kube-proxy</code> is running on your Nodes. Running directly on a
+Node, you should get something like the below:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>ps auxw <span class=p>|</span> grep kube-proxy
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>root  4194  0.4  0.1 101864 17696 ?    Sl Jul04  25:43 /usr/local/bin/kube-proxy --master=https://kubernetes-master --kubeconfig=/var/lib/kube-proxy/kubeconfig --v=2
+</code></pre><p>Next, confirm that it is not failing something obvious, like contacting the
+master. To do this, you'll have to look at the logs. Accessing the logs
+depends on your Node OS. On some OSes it is a file, such as
+/var/log/kube-proxy.log, while other OSes use <code>journalctl</code> to access logs. You
+should see something like:</p><pre tabindex=0><code class=language-none data-lang=none>I1027 22:14:53.995134    5063 server.go:200] Running in resource-only container &#34;/kube-proxy&#34;
+I1027 22:14:53.998163    5063 server.go:247] Using iptables Proxier.
+I1027 22:14:54.038140    5063 proxier.go:352] Setting endpoints for &#34;kube-system/kube-dns:dns-tcp&#34; to [10.244.1.3:53]
+I1027 22:14:54.038164    5063 proxier.go:352] Setting endpoints for &#34;kube-system/kube-dns:dns&#34; to [10.244.1.3:53]
+I1027 22:14:54.038209    5063 proxier.go:352] Setting endpoints for &#34;default/kubernetes:https&#34; to [10.240.0.2:443]
+I1027 22:14:54.038238    5063 proxier.go:429] Not syncing iptables until Services and Endpoints have been received from master
+I1027 22:14:54.040048    5063 proxier.go:294] Adding new service &#34;default/kubernetes:https&#34; at 10.0.0.1:443/TCP
+I1027 22:14:54.040154    5063 proxier.go:294] Adding new service &#34;kube-system/kube-dns:dns&#34; at 10.0.0.10:53/UDP
+I1027 22:14:54.040223    5063 proxier.go:294] Adding new service &#34;kube-system/kube-dns:dns-tcp&#34; at 10.0.0.10:53/TCP
+</code></pre><p>If you see error messages about not being able to contact the master, you
+should double-check your Node configuration and installation steps.</p><p>Kube-proxy can run in one of a few modes. In the log listed above, the
+line <code>Using iptables Proxier</code> indicates that kube-proxy is running in
+"iptables" mode. The most common other mode is "ipvs".</p><h4 id=iptables-mode>Iptables mode<a class=td-heading-self-link href=#iptables-mode aria-label="Heading self-link"></a></h4><p>In "iptables" mode, you should see something like the following on a Node:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>iptables-save <span class=p>|</span> grep hostnames
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>-A KUBE-SEP-57KPRZ3JQVENLNBR -s 10.244.3.6/32 -m comment --comment &#34;default/hostnames:&#34; -j MARK --set-xmark 0x00004000/0x00004000
+-A KUBE-SEP-57KPRZ3JQVENLNBR -p tcp -m comment --comment &#34;default/hostnames:&#34; -m tcp -j DNAT --to-destination 10.244.3.6:9376
+-A KUBE-SEP-WNBA2IHDGP2BOBGZ -s 10.244.1.7/32 -m comment --comment &#34;default/hostnames:&#34; -j MARK --set-xmark 0x00004000/0x00004000
+-A KUBE-SEP-WNBA2IHDGP2BOBGZ -p tcp -m comment --comment &#34;default/hostnames:&#34; -m tcp -j DNAT --to-destination 10.244.1.7:9376
+-A KUBE-SEP-X3P2623AGDH6CDF3 -s 10.244.2.3/32 -m comment --comment &#34;default/hostnames:&#34; -j MARK --set-xmark 0x00004000/0x00004000
+-A KUBE-SEP-X3P2623AGDH6CDF3 -p tcp -m comment --comment &#34;default/hostnames:&#34; -m tcp -j DNAT --to-destination 10.244.2.3:9376
+-A KUBE-SERVICES -d 10.0.1.175/32 -p tcp -m comment --comment &#34;default/hostnames: cluster IP&#34; -m tcp --dport 80 -j KUBE-SVC-NWV5X2332I4OT4T3
+-A KUBE-SVC-NWV5X2332I4OT4T3 -m comment --comment &#34;default/hostnames:&#34; -m statistic --mode random --probability 0.33332999982 -j KUBE-SEP-WNBA2IHDGP2BOBGZ
+-A KUBE-SVC-NWV5X2332I4OT4T3 -m comment --comment &#34;default/hostnames:&#34; -m statistic --mode random --probability 0.50000000000 -j KUBE-SEP-X3P2623AGDH6CDF3
+-A KUBE-SVC-NWV5X2332I4OT4T3 -m comment --comment &#34;default/hostnames:&#34; -j KUBE-SEP-57KPRZ3JQVENLNBR
+</code></pre><p>For each port of each Service, there should be 1 rule in <code>KUBE-SERVICES</code> and
+one <code>KUBE-SVC-&lt;hash></code> chain. For each Pod endpoint, there should be a small
+number of rules in that <code>KUBE-SVC-&lt;hash></code> and one <code>KUBE-SEP-&lt;hash></code> chain with
+a small number of rules in it. The exact rules will vary based on your exact
+config (including node-ports and load-balancers).</p><h4 id=ipvs-mode>IPVS mode<a class=td-heading-self-link href=#ipvs-mode aria-label="Heading self-link"></a></h4><p>In "ipvs" mode, you should see something like the following on a Node:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>ipvsadm -ln
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>Prot LocalAddress:Port Scheduler Flags
+  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn
+...
+TCP  10.0.1.175:80 rr
+  -&gt; 10.244.0.5:9376               Masq    1      0          0
+  -&gt; 10.244.0.6:9376               Masq    1      0          0
+  -&gt; 10.244.0.7:9376               Masq    1      0          0
+...
+</code></pre><p>For each port of each Service, plus any NodePorts, external IPs, and
+load-balancer IPs, kube-proxy will create a virtual server. For each Pod
+endpoint, it will create corresponding real servers. In this example, service
+hostnames(<code>10.0.1.175:80</code>) has 3 endpoints(<code>10.244.0.5:9376</code>,
+<code>10.244.0.6:9376</code>, <code>10.244.0.7:9376</code>).</p><h3 id=is-kube-proxy-proxying>Is kube-proxy proxying?<a class=td-heading-self-link href=#is-kube-proxy-proxying aria-label="Heading self-link"></a></h3><p>Assuming you do see one the above cases, try again to access your Service by
+IP from one of your Nodes:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>curl 10.0.1.175:80
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>hostnames-632524106-bbpiw
+</code></pre><p>If this still fails, look at the <code>kube-proxy</code> logs for specific lines like:</p><pre tabindex=0><code class=language-none data-lang=none>Setting endpoints for default/hostnames:default to [10.244.0.5:9376 10.244.0.6:9376 10.244.0.7:9376]
+</code></pre><p>If you don't see those, try restarting <code>kube-proxy</code> with the <code>-v</code> flag set to 4, and
+then look at the logs again.</p><h3 id=a-pod-fails-to-reach-itself-via-the-service-ip>Edge case: A Pod fails to reach itself via the Service IP<a class=td-heading-self-link href=#a-pod-fails-to-reach-itself-via-the-service-ip aria-label="Heading self-link"></a></h3><p>This might sound unlikely, but it does happen and it is supposed to work.</p><p>This can happen when the network is not properly configured for "hairpin"
+traffic, usually when <code>kube-proxy</code> is running in <code>iptables</code> mode and Pods
+are connected with bridge network. The <code>Kubelet</code> exposes a <code>hairpin-mode</code>
+<a href=/docs/reference/command-line-tools-reference/kubelet/>flag</a> that allows endpoints of a Service to loadbalance
+back to themselves if they try to access their own Service VIP. The
+<code>hairpin-mode</code> flag must either be set to <code>hairpin-veth</code> or
+<code>promiscuous-bridge</code>.</p><p>The common steps to trouble shoot this are as follows:</p><ul><li>Confirm <code>hairpin-mode</code> is set to <code>hairpin-veth</code> or <code>promiscuous-bridge</code>.
+You should see something like the below. <code>hairpin-mode</code> is set to
+<code>promiscuous-bridge</code> in the following example.</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>ps auxw <span class=p>|</span> grep kubelet
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>root      3392  1.1  0.8 186804 65208 ?        Sl   00:51  11:11 /usr/local/bin/kubelet --enable-debugging-handlers=true --config=/etc/kubernetes/manifests --allow-privileged=True --v=4 --cluster-dns=10.0.0.10 --cluster-domain=cluster.local --configure-cbr0=true --cgroup-root=/ --system-cgroups=/system --hairpin-mode=promiscuous-bridge --runtime-cgroups=/docker-daemon --kubelet-cgroups=/kubelet --babysit-daemons=true --max-pods=110 --serialize-image-pulls=false --outofdisk-transition-frequency=0
+</code></pre><ul><li>Confirm the effective <code>hairpin-mode</code>. To do this, you'll have to look at
+kubelet log. Accessing the logs depends on your Node OS. On some OSes it
+is a file, such as /var/log/kubelet.log, while other OSes use <code>journalctl</code>
+to access logs. Please be noted that the effective hairpin mode may not
+match <code>--hairpin-mode</code> flag due to compatibility. Check if there is any log
+lines with key word <code>hairpin</code> in kubelet.log. There should be log lines
+indicating the effective hairpin mode, like something below.</li></ul><pre tabindex=0><code class=language-none data-lang=none>I0629 00:51:43.648698    3252 kubelet.go:380] Hairpin mode set to &#34;promiscuous-bridge&#34;
+</code></pre><ul><li>If the effective hairpin mode is <code>hairpin-veth</code>, ensure the <code>Kubelet</code> has
+the permission to operate in <code>/sys</code> on node. If everything works properly,
+you should see something like:</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=k>for</span> intf in /sys/devices/virtual/net/cbr0/brif/*<span class=p>;</span> <span class=k>do</span> cat <span class=nv>$intf</span>/hairpin_mode<span class=p>;</span> <span class=k>done</span>
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>1
+1
+1
+1
+</code></pre><ul><li>If the effective hairpin mode is <code>promiscuous-bridge</code>, ensure <code>Kubelet</code>
+has the permission to manipulate linux bridge on node. If <code>cbr0</code> bridge is
+used and configured properly, you should see:</li></ul><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>ifconfig cbr0 <span class=p>|</span>grep PROMISC
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>UP BROADCAST RUNNING PROMISC MULTICAST  MTU:1460  Metric:1
+</code></pre><ul><li>Seek help if none of above works out.</li></ul><h2 id=seek-help>Seek help<a class=td-heading-self-link href=#seek-help aria-label="Heading self-link"></a></h2><p>If you get this far, something very strange is happening. Your Service is
+running, has EndpointSlices, and your Pods are actually serving. You have DNS
+working, and <code>kube-proxy</code> does not seem to be misbehaving. And yet your
+Service is not working. Please let us know what is going on, so we can help
+investigate!</p><p>Contact us on
+<a href=https://slack.k8s.io/>Slack</a> or
+<a href=https://discuss.kubernetes.io>Forum</a> or
+<a href=https://github.com/kubernetes/kubernetes>GitHub</a>.</p><h2 id=what-s-next>What's next<a class=td-heading-self-link href=#what-s-next aria-label="Heading self-link"></a></h2><p>Visit the <a href=/docs/tasks/debug/>troubleshooting overview document</a>
+for more information.</p></div><div class=td-content style=page-break-before:always><h1 id=pg-089001d4003f033e21602adcb11cd277>3 - Debug a StatefulSet</h1><p>This task shows you how to debug a StatefulSet.</p><h2 id=before-you-begin>Before you begin<a class=td-heading-self-link href=#before-you-begin aria-label="Heading self-link"></a></h2><ul><li>You need to have a Kubernetes cluster, and the kubectl command-line tool must be configured to communicate with your cluster.</li><li>You should have a StatefulSet running that you want to investigate.</li></ul><h2 id=debugging-a-statefulset>Debugging a StatefulSet<a class=td-heading-self-link href=#debugging-a-statefulset aria-label="Heading self-link"></a></h2><p>In order to list all the pods which belong to a StatefulSet, which have a label <code>app.kubernetes.io/name=MyApp</code> set on them,
+you can use the following:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pods -l app.kubernetes.io/name<span class=o>=</span>MyApp
+</span></span></code></pre></div><p>If you find that any Pods listed are in <code>Unknown</code> or <code>Terminating</code> state for an extended period of time,
+refer to the <a href=/docs/tasks/run-application/delete-stateful-set/>Deleting StatefulSet Pods</a> task for
+instructions on how to deal with them.
+You can debug individual Pods in a StatefulSet using the
+<a href=/docs/tasks/debug/debug-application/debug-pods/>Debugging Pods</a> guide.</p><h2 id=what-s-next>What's next<a class=td-heading-self-link href=#what-s-next aria-label="Heading self-link"></a></h2><p>Learn more about <a href=/docs/tasks/debug/debug-application/debug-init-containers/>debugging an init-container</a>.</p></div><div class=td-content style=page-break-before:always><h1 id=pg-655b47c523b6f1b52d25e520625abccb>4 - Determine the Reason for Pod Failure</h1><p>This page shows how to write and read a Container termination message.</p><p>Termination messages provide a way for containers to write
+information about fatal events to a location where it can
+be easily retrieved and surfaced by tools like dashboards
+and monitoring software. In most cases, information that you
+put in a termination message should also be written to
+the general
+<a href=/docs/concepts/cluster-administration/logging/>Kubernetes logs</a>.</p><h2 id=before-you-begin>Before you begin<a class=td-heading-self-link href=#before-you-begin aria-label="Heading self-link"></a></h2><p>You need to have a Kubernetes cluster, and the kubectl command-line tool must
+be configured to communicate with your cluster. It is recommended to run this tutorial on a cluster with at least two nodes that are not acting as control plane hosts. If you do not already have a
+cluster, you can create one by using
+<a href=https://minikube.sigs.k8s.io/docs/tutorials/multi_node/>minikube</a>
+or you can use one of these Kubernetes playgrounds:</p><ul><li><a href="https://labs.iximiuz.com/playgrounds?category=kubernetes&filter=all">iximiuz Labs</a></li><li><a href=https://killercoda.com/playgrounds/scenario/kubernetes>Killercoda</a></li><li><a href=https://kodekloud.com/public-playgrounds>KodeKloud</a></li></ul><h2 id=writing-and-reading-a-termination-message>Writing and reading a termination message<a class=td-heading-self-link href=#writing-and-reading-a-termination-message aria-label="Heading self-link"></a></h2><p>In this exercise, you create a Pod that runs one container.
+The manifest for that Pod specifies a command that runs when the container starts:</p><div class="highlight code-sample"><div class=copy-code-icon><a href=https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/debug/termination.yaml download=debug/termination.yaml><code>debug/termination.yaml</code>
+</a><img src=/images/copycode.svg class=icon-copycode onclick='copyCode("debug-termination-yaml")' title="Copy debug/termination.yaml to clipboard"></img></div><div class=includecode id=debug-termination-yaml><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>termination-demo</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>termination-demo-container</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>debian</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;/bin/sh&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>args</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;-c&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;sleep 10 &amp;&amp; echo Sleep expired &gt; /dev/termination-log&#34;</span><span class=p>]</span><span class=w>
+</span></span></span></code></pre></div></div></div><ol><li><p>Create a Pod based on the YAML configuration file:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl apply -f https://k8s.io/examples/debug/termination.yaml
+</span></span></code></pre></div><p>In the YAML file, in the <code>command</code> and <code>args</code> fields, you can see that the
+container sleeps for 10 seconds and then writes "Sleep expired" to
+the <code>/dev/termination-log</code> file. After the container writes
+the "Sleep expired" message, it terminates.</p></li><li><p>Display information about the Pod:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod termination-demo
+</span></span></code></pre></div><p>Repeat the preceding command until the Pod is no longer running.</p></li><li><p>Display detailed information about the Pod:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod termination-demo --output<span class=o>=</span>yaml
+</span></span></code></pre></div><p>The output includes the "Sleep expired" message:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nn>...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>lastState</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>terminated</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>containerID</span><span class=p>:</span><span class=w> </span><span class=l>...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>exitCode</span><span class=p>:</span><span class=w> </span><span class=m>0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>finishedAt</span><span class=p>:</span><span class=w> </span><span class=l>...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>message</span><span class=p>:</span><span class=w> </span><span class=p>|</span><span class=sd>
+</span></span></span><span class=line><span class=cl><span class=sd>          Sleep expired</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=l>...</span><span class=w>
+</span></span></span></code></pre></div></li><li><p>Use a Go template to filter the output so that it includes only the termination message:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod termination-demo -o go-template<span class=o>=</span><span class=s2>&#34;{{range .status.containerStatuses}}{{.lastState.terminated.message}}{{end}}&#34;</span>
+</span></span></code></pre></div></li></ol><p>If you are running a multi-container Pod, you can use a Go template to include the container's name.
+By doing so, you can discover which of the containers is failing:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod multi-container-pod -o go-template<span class=o>=</span><span class=s1>&#39;{{range .status.containerStatuses}}{{printf &#34;%s:\n%s\n\n&#34; .name .lastState.terminated.message}}{{end}}&#39;</span>
+</span></span></code></pre></div><h2 id=customizing-the-termination-message>Customizing the termination message<a class=td-heading-self-link href=#customizing-the-termination-message aria-label="Heading self-link"></a></h2><p>Kubernetes retrieves termination messages from the termination message file
+specified in the <code>terminationMessagePath</code> field of a Container, which has a default
+value of <code>/dev/termination-log</code>. By customizing this field, you can tell Kubernetes
+to use a different file. Kubernetes use the contents from the specified file to
+populate the Container's status message on both success and failure.</p><p>The termination message is intended to be brief final status, such as an assertion failure message.
+The kubelet truncates messages that are longer than 4096 bytes.</p><p>The total message length across all containers is limited to 12KiB, divided equally among each container.
+For example, if there are 12 containers (<code>initContainers</code> or <code>containers</code>), each has 1024 bytes of available termination message space.</p><p>The default termination message path is <code>/dev/termination-log</code>.
+You cannot set the termination message path after a Pod is launched.</p><p>In the following example, the container writes termination messages to
+<code>/tmp/my-log</code> for Kubernetes to retrieve:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>msg-path-demo</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>msg-path-demo-container</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>debian</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>terminationMessagePath</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;/tmp/my-log&#34;</span><span class=w>
+</span></span></span></code></pre></div><p>Moreover, users can set the <code>terminationMessagePolicy</code> field of a Container for
+further customization. This field defaults to "<code>File</code>" which means the termination
+messages are retrieved only from the termination message file. By setting the
+<code>terminationMessagePolicy</code> to "<code>FallbackToLogsOnError</code>", you can tell Kubernetes
+to use the last chunk of container log output if the termination message file
+is empty and the container exited with an error. The log output is limited to
+2048 bytes or 80 lines, whichever is smaller.</p><h2 id=what-s-next>What's next<a class=td-heading-self-link href=#what-s-next aria-label="Heading self-link"></a></h2><ul><li>See the <code>terminationMessagePath</code> field in
+<a href=/docs/reference/generated/kubernetes-api/v1.37/#container-v1-core>Container</a>.</li><li>See <a href=/docs/concepts/containers/images/#imagepullbackoff>ImagePullBackOff</a> in <a href=/docs/concepts/containers/images/>Images</a>.</li><li>Learn about <a href=/docs/concepts/cluster-administration/logging/>retrieving logs</a>.</li><li>Learn about <a href=https://pkg.go.dev/text/template>Go templates</a>.</li><li>Learn about <a href=/docs/tasks/debug/debug-application/debug-init-containers/#understanding-pod-status>Pod status</a> and <a href=/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase>Pod phase</a>.</li><li>Learn about <a href=/docs/concepts/workloads/pods/pod-lifecycle/#container-states>container states</a>.</li></ul></div><div class=td-content style=page-break-before:always><h1 id=pg-43445f3208669d4078e87dbdbeed8473>5 - Debug Init Containers</h1><p>This page shows how to investigate problems related to the execution of
+Init Containers. The example command lines below refer to the Pod as
+<code>&lt;pod-name></code> and the Init Containers as <code>&lt;init-container-1></code> and
+<code>&lt;init-container-2></code>.</p><h2 id=before-you-begin>Before you begin<a class=td-heading-self-link href=#before-you-begin aria-label="Heading self-link"></a></h2><p><p>You need to have a Kubernetes cluster, and the kubectl command-line tool must
+be configured to communicate with your cluster. It is recommended to run this tutorial on a cluster with at least two nodes that are not acting as control plane hosts. If you do not already have a
+cluster, you can create one by using
+<a href=https://minikube.sigs.k8s.io/docs/tutorials/multi_node/>minikube</a>
+or you can use one of these Kubernetes playgrounds:</p><ul><li><a href="https://labs.iximiuz.com/playgrounds?category=kubernetes&filter=all">iximiuz Labs</a></li><li><a href=https://killercoda.com/playgrounds/scenario/kubernetes>Killercoda</a></li><li><a href=https://kodekloud.com/public-playgrounds>KodeKloud</a></li></ul><p>To check the version, enter <code>kubectl version</code>.</p></p><ul><li>You should be familiar with the basics of
+<a href=/docs/concepts/workloads/pods/init-containers/>Init Containers</a>.</li><li>You should have <a href=/docs/tasks/configure-pod-container/configure-pod-initialization/#create-a-pod-that-has-an-init-container>Configured an Init Container</a>.</li></ul><h2 id=checking-the-status-of-init-containers>Checking the status of Init Containers<a class=td-heading-self-link href=#checking-the-status-of-init-containers aria-label="Heading self-link"></a></h2><p>Display the status of your pod:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod &lt;pod-name&gt;
+</span></span></code></pre></div><p>For example, a status of <code>Init:1/2</code> indicates that one of two Init Containers
+has completed successfully:</p><pre tabindex=0><code>NAME         READY     STATUS     RESTARTS   AGE
+&lt;pod-name&gt;   0/1       Init:1/2   0          7s
+</code></pre><p>See <a href=#understanding-pod-status>Understanding Pod status</a> for more examples of
+status values and their meanings.</p><h2 id=getting-details-about-init-containers>Getting details about Init Containers<a class=td-heading-self-link href=#getting-details-about-init-containers aria-label="Heading self-link"></a></h2><p>View more detailed information about Init Container execution:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl describe pod &lt;pod-name&gt;
+</span></span></code></pre></div><p>For example, a Pod with two Init Containers might show the following:</p><pre tabindex=0><code>Init Containers:
+  &lt;init-container-1&gt;:
+    Container ID:    ...
+    ...
+    State:           Terminated
+      Reason:        Completed
+      Exit Code:     0
+      Started:       ...
+      Finished:      ...
+    Ready:           True
+    Restart Count:   0
+    ...
+  &lt;init-container-2&gt;:
+    Container ID:    ...
+    ...
+    State:           Waiting
+      Reason:        CrashLoopBackOff
+    Last State:      Terminated
+      Reason:        Error
+      Exit Code:     1
+      Started:       ...
+      Finished:      ...
+    Ready:           False
+    Restart Count:   3
+    ...
+</code></pre><p>You can also access the Init Container statuses programmatically by reading the
+<code>status.initContainerStatuses</code> field on the Pod Spec:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod &lt;pod-name&gt; --template <span class=s1>&#39;{{.status.initContainerStatuses}}&#39;</span>
+</span></span></code></pre></div><p>This command will return the same information as above, formatted using a <a href=https://pkg.go.dev/text/template>Go template</a>.</p><h2 id=accessing-logs-from-init-containers>Accessing logs from Init Containers<a class=td-heading-self-link href=#accessing-logs-from-init-containers aria-label="Heading self-link"></a></h2><p>Pass the Init Container name along with the Pod name
+to access its logs.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl logs &lt;pod-name&gt; -c &lt;init-container-2&gt;
+</span></span></code></pre></div><p>Init Containers that run a shell script print
+commands as they're executed. For example, you can do this in Bash by running
+<code>set -x</code> at the beginning of the script.</p><h2 id=understanding-pod-status>Understanding Pod status<a class=td-heading-self-link href=#understanding-pod-status aria-label="Heading self-link"></a></h2><p>A Pod status beginning with <code>Init:</code> summarizes the status of Init Container
+execution. The table below describes some example status values that you might
+see while debugging Init Containers.</p><table><thead><tr><th>Status</th><th>Meaning</th></tr></thead><tbody><tr><td><code>Init:N/M</code></td><td>The Pod has <code>M</code> Init Containers, and <code>N</code> have completed so far.</td></tr><tr><td><code>Init:Error</code></td><td>An Init Container has failed to execute.</td></tr><tr><td><code>Init:CrashLoopBackOff</code></td><td>An Init Container has failed repeatedly.</td></tr><tr><td><code>Pending</code></td><td>The Pod has not yet begun executing Init Containers.</td></tr><tr><td><code>PodInitializing</code> or <code>Running</code></td><td>The Pod has already finished executing Init Containers.</td></tr></tbody></table></div><div class=td-content style=page-break-before:always><h1 id=pg-132acc7efbd72bd677945eda3b6c6d38>6 - Debug Running Pods</h1><p>This page explains how to debug Pods running (or crashing) on a Node.</p><h2 id=before-you-begin>Before you begin<a class=td-heading-self-link href=#before-you-begin aria-label="Heading self-link"></a></h2><ul><li>Your <a class=glossary-tooltip title='A Pod represents a set of running containers in your cluster.' data-bs-toggle=tooltip data-bs-placement=top href=/docs/concepts/workloads/pods/ target=_blank aria-label=Pod>Pod</a> should already be
+scheduled and running. If your Pod is not yet running, start with <a href=/docs/tasks/debug/debug-application/>Debugging
+Pods</a>.</li><li>For some of the advanced debugging steps you need to know on which Node the
+Pod is running and have shell access to run commands on that Node. You don't
+need that access to run the standard debug steps that use <code>kubectl</code>.</li></ul><h2 id=using-kubectl-describe-pod-to-fetch-details-about-pods>Using <code>kubectl describe pod</code> to fetch details about pods<a class=td-heading-self-link href=#using-kubectl-describe-pod-to-fetch-details-about-pods aria-label="Heading self-link"></a></h2><p>For this example we'll use a Deployment to create two pods, similar to the earlier example.</p><div class="highlight code-sample"><div class=copy-code-icon><a href=https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/application/nginx-with-request.yaml download=application/nginx-with-request.yaml><code>application/nginx-with-request.yaml</code>
+</a><img src=/images/copycode.svg class=icon-copycode onclick='copyCode("application-nginx-with-request-yaml")' title="Copy application/nginx-with-request.yaml to clipboard"></img></div><div class=includecode id=application-nginx-with-request-yaml><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>replicas</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>template</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;128Mi&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;500m&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span></span></span></code></pre></div></div></div><p>Create deployment by running following command:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl apply -f https://k8s.io/examples/application/nginx-with-request.yaml
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>deployment.apps/nginx-deployment created
+</code></pre><p>Check pod status by following command:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pods
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-67d4bdd6f5-cx2nz   1/1     Running   0          13s
+nginx-deployment-67d4bdd6f5-w6kd7   1/1     Running   0          13s
+</code></pre><p>We can retrieve a lot more information about each of these pods using <code>kubectl describe pod</code>. For example:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl describe pod nginx-deployment-67d4bdd6f5-w6kd7
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>Name:         nginx-deployment-67d4bdd6f5-w6kd7
+Namespace:    default
+Priority:     0
+Node:         kube-worker-1/192.168.0.113
+Start Time:   Thu, 17 Feb 2022 16:51:01 -0500
+Labels:       app=nginx
+              pod-template-hash=67d4bdd6f5
+Annotations:  &lt;none&gt;
+Status:       Running
+IP:           10.88.0.3
+IPs:
+  IP:           10.88.0.3
+  IP:           2001:db8::1
+Controlled By:  ReplicaSet/nginx-deployment-67d4bdd6f5
+Containers:
+  nginx:
+    Container ID:   containerd://5403af59a2b46ee5a23fb0ae4b1e077f7ca5c5fb7af16e1ab21c00e0e616462a
+    Image:          nginx
+    Image ID:       docker.io/library/nginx@sha256:2834dc507516af02784808c5f48b7cbe38b8ed5d0f4837f16e78d00deb7e7767
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Thu, 17 Feb 2022 16:51:05 -0500
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     500m
+      memory:  128Mi
+    Requests:
+      cpu:        500m
+      memory:     128Mi
+    Environment:  &lt;none&gt;
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-bgsgp (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  kube-api-access-bgsgp:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       &lt;nil&gt;
+    DownwardAPI:             true
+QoS Class:                   Guaranteed
+Node-Selectors:              &lt;none&gt;
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  34s   default-scheduler  Successfully assigned default/nginx-deployment-67d4bdd6f5-w6kd7 to kube-worker-1
+  Normal  Pulling    31s   kubelet            Pulling image &#34;nginx&#34;
+  Normal  Pulled     30s   kubelet            Successfully pulled image &#34;nginx&#34; in 1.146417389s
+  Normal  Created    30s   kubelet            Created container nginx
+  Normal  Started    30s   kubelet            Started container nginx
+</code></pre><p>Here you can see configuration information about the container(s) and Pod (labels, resource requirements, etc.), as well as status information about the container(s) and Pod (state, readiness, restart count, events, etc.).</p><p>The container state is one of Waiting, Running, or Terminated. Depending on the state, additional information will be provided - here you can see that for a container in Running state, the system tells you when the container started.</p><p>Ready tells you whether the container passed its last readiness probe. (In this case, the container does not have a readiness probe configured; the container is assumed to be ready if no readiness probe is configured.)</p><p>Restart Count tells you how many times the container has been restarted; this information can be useful for detecting crash loops in containers that are configured with a restart policy of <code>Always</code>.</p><p>Currently the only Condition associated with a Pod is the binary Ready condition, which indicates that the pod is able to service requests and should be added to the load balancing pools of all matching services.</p><p>Lastly, you see a log of recent events related to your Pod. "From" indicates the component that is logging the event. "Reason" and "Message" tell you what happened.</p><h2 id=example-debugging-pending-pods>Example: debugging Pending Pods<a class=td-heading-self-link href=#example-debugging-pending-pods aria-label="Heading self-link"></a></h2><p>A common scenario that you can detect using events is when you've created a Pod that won't fit on any node. For example, the Pod might request more resources than are free on any node, or it might specify a label selector that doesn't match any nodes. Let's say we created the previous Deployment with 5 replicas (instead of 2) and requesting 600 millicores instead of 500, on a four-node cluster where each (virtual) machine has 1 CPU. In that case one of the Pods will not be able to schedule. (Note that because of the cluster addon pods such as fluentd, skydns, etc., that run on each node, if we requested 1000 millicores then none of the Pods would be able to schedule.)</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pods
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>NAME                                READY     STATUS    RESTARTS   AGE
+nginx-deployment-1006230814-6winp   1/1       Running   0          7m
+nginx-deployment-1006230814-fmgu3   1/1       Running   0          7m
+nginx-deployment-1370807587-6ekbw   1/1       Running   0          1m
+nginx-deployment-1370807587-fg172   0/1       Pending   0          1m
+nginx-deployment-1370807587-fz9sd   0/1       Pending   0          1m
+</code></pre><p>To find out why the nginx-deployment-1370807587-fz9sd pod is not running, we can use <code>kubectl describe pod</code> on the pending Pod and look at its events:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl describe pod nginx-deployment-1370807587-fz9sd
+</span></span></code></pre></div><pre tabindex=0><code class=language-none data-lang=none>  Name:		nginx-deployment-1370807587-fz9sd
+  Namespace:	default
+  Node:		/
+  Labels:		app=nginx,pod-template-hash=1370807587
+  Status:		Pending
+  IP:
+  Controllers:	ReplicaSet/nginx-deployment-1370807587
+  Containers:
+    nginx:
+      Image:	nginx
+      Port:	80/TCP
+      QoS Tier:
+        memory:	Guaranteed
+        cpu:	Guaranteed
+      Limits:
+        cpu:	1
+        memory:	128Mi
+      Requests:
+        cpu:	1
+        memory:	128Mi
+      Environment Variables:
+  Volumes:
+    default-token-4bcbi:
+      Type:	Secret (a volume populated by a Secret)
+      SecretName:	default-token-4bcbi
+  Events:
+    FirstSeen	LastSeen	Count	From			        SubobjectPath	Type		Reason			    Message
+    ---------	--------	-----	----			        -------------	--------	------			    -------
+    1m		    48s		    7	    {default-scheduler }			        Warning		FailedScheduling	pod (nginx-deployment-1370807587-fz9sd) failed to fit in any node
+  fit failure on node (kubernetes-node-6ta5): Node didn&#39;t have enough resource: CPU, requested: 1000, used: 1420, capacity: 2000
+  fit failure on node (kubernetes-node-wul5): Node didn&#39;t have enough resource: CPU, requested: 1000, used: 1100, capacity: 2000
+</code></pre><p>Here you can see the event generated by the scheduler saying that the Pod failed to schedule for reason <code>FailedScheduling</code> (and possibly others). The message tells us that there were not enough resources for the Pod on any of the nodes.</p><p>To correct this situation, you can use <code>kubectl scale</code> to update your Deployment to specify four or fewer replicas. (Or you could leave the one Pod pending, which is harmless.)</p><p>Events such as the ones you saw at the end of <code>kubectl describe pod</code> are persisted in etcd and provide high-level information on what is happening in the cluster. To list all events you can use</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get events
+</span></span></code></pre></div><p>but you have to remember that events are namespaced. This means that if you're interested in events for some namespaced object (e.g. what happened with Pods in namespace <code>my-namespace</code>) you need to explicitly provide a namespace to the command:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get events --namespace<span class=o>=</span>my-namespace
+</span></span></code></pre></div><p>To see events from all namespaces, you can use the <code>--all-namespaces</code> argument.</p><p>In addition to <code>kubectl describe pod</code>, another way to get extra information about a pod (beyond what is provided by <code>kubectl get pod</code>) is to pass the <code>-o yaml</code> output format flag to <code>kubectl get pod</code>. This will give you, in YAML format, even more information than <code>kubectl describe pod</code> - essentially all of the information the system has about the Pod. Here you will see things like annotations (which are key-value metadata without the label restrictions, that is used internally by Kubernetes system components), restart policy, ports, and volumes.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod nginx-deployment-1006230814-6winp -o yaml
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>creationTimestamp</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2022-02-17T21:51:01Z&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>generateName</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment-67d4bdd6f5-</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>pod-template-hash</span><span class=p>:</span><span class=w> </span><span class=l>67d4bdd6f5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment-67d4bdd6f5-w6kd7</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>ownerReferences</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>blockOwnerDeletion</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>controller</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ReplicaSet</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx-deployment-67d4bdd6f5</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>uid</span><span class=p>:</span><span class=w> </span><span class=l>7d41dfd4-84c0-4be4-88ab-cedbe626ad82</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>resourceVersion</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;1364&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>uid</span><span class=p>:</span><span class=w> </span><span class=l>a6501da1-0447-4262-98eb-c03d4002222e</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>imagePullPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Always</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>ports</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>protocol</span><span class=p>:</span><span class=w> </span><span class=l>TCP</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=l>500m</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>128Mi</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=l>500m</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=l>128Mi</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>terminationMessagePath</span><span class=p>:</span><span class=w> </span><span class=l>/dev/termination-log</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>terminationMessagePolicy</span><span class=p>:</span><span class=w> </span><span class=l>File</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/var/run/secrets/kubernetes.io/serviceaccount</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>kube-api-access-bgsgp</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>readOnly</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>dnsPolicy</span><span class=p>:</span><span class=w> </span><span class=l>ClusterFirst</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>enableServiceLinks</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>nodeName</span><span class=p>:</span><span class=w> </span><span class=l>kube-worker-1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>preemptionPolicy</span><span class=p>:</span><span class=w> </span><span class=l>PreemptLowerPriority</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>priority</span><span class=p>:</span><span class=w> </span><span class=m>0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>restartPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Always</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>schedulerName</span><span class=p>:</span><span class=w> </span><span class=l>default-scheduler</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>securityContext</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>serviceAccount</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>serviceAccountName</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>terminationGracePeriodSeconds</span><span class=p>:</span><span class=w> </span><span class=m>30</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>tolerations</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=l>NoExecute</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>node.kubernetes.io/not-ready</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>operator</span><span class=p>:</span><span class=w> </span><span class=l>Exists</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>tolerationSeconds</span><span class=p>:</span><span class=w> </span><span class=m>300</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>effect</span><span class=p>:</span><span class=w> </span><span class=l>NoExecute</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>node.kubernetes.io/unreachable</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>operator</span><span class=p>:</span><span class=w> </span><span class=l>Exists</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>tolerationSeconds</span><span class=p>:</span><span class=w> </span><span class=m>300</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>kube-api-access-bgsgp</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>projected</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>defaultMode</span><span class=p>:</span><span class=w> </span><span class=m>420</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>sources</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>serviceAccountToken</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>expirationSeconds</span><span class=p>:</span><span class=w> </span><span class=m>3607</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>token</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>configMap</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>items</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span>- <span class=nt>key</span><span class=p>:</span><span class=w> </span><span class=l>ca.crt</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>ca.crt</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>kube-root-ca.crt</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span>- <span class=nt>downwardAPI</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span><span class=nt>items</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>          </span>- <span class=nt>fieldRef</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>              </span><span class=nt>fieldPath</span><span class=p>:</span><span class=w> </span><span class=l>metadata.namespace</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=nt>path</span><span class=p>:</span><span class=w> </span><span class=l>namespace</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>status</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>conditions</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>lastProbeTime</span><span class=p>:</span><span class=w> </span><span class=kc>null</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>lastTransitionTime</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2022-02-17T21:51:01Z&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>status</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;True&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>Initialized</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>lastProbeTime</span><span class=p>:</span><span class=w> </span><span class=kc>null</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>lastTransitionTime</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2022-02-17T21:51:06Z&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>status</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;True&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>Ready</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>lastProbeTime</span><span class=p>:</span><span class=w> </span><span class=kc>null</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>lastTransitionTime</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2022-02-17T21:51:06Z&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>status</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;True&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>ContainersReady</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>lastProbeTime</span><span class=p>:</span><span class=w> </span><span class=kc>null</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>lastTransitionTime</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2022-02-17T21:51:01Z&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>status</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;True&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>type</span><span class=p>:</span><span class=w> </span><span class=l>PodScheduled</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containerStatuses</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>containerID</span><span class=p>:</span><span class=w> </span><span class=l>containerd://5403af59a2b46ee5a23fb0ae4b1e077f7ca5c5fb7af16e1ab21c00e0e616462a</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>docker.io/library/nginx:latest</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>imageID</span><span class=p>:</span><span class=w> </span><span class=l>docker.io/library/nginx@sha256:2834dc507516af02784808c5f48b7cbe38b8ed5d0f4837f16e78d00deb7e7767</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>lastState</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>ready</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>restartCount</span><span class=p>:</span><span class=w> </span><span class=m>0</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>started</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>state</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>running</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=nt>startedAt</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2022-02-17T21:51:05Z&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>hostIP</span><span class=p>:</span><span class=w> </span><span class=m>192.168.0.113</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>phase</span><span class=p>:</span><span class=w> </span><span class=l>Running</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>podIP</span><span class=p>:</span><span class=w> </span><span class=m>10.88.0.3</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>podIPs</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>ip</span><span class=p>:</span><span class=w> </span><span class=m>10.88.0.3</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>ip</span><span class=p>:</span><span class=w> </span><span class=m>2001</span><span class=p>:</span><span class=l>db8::1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>qosClass</span><span class=p>:</span><span class=w> </span><span class=l>Guaranteed</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>startTime</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;2022-02-17T21:51:01Z&#34;</span><span class=w>
+</span></span></span></code></pre></div><h2 id=examine-pod-logs>Examining pod logs<a class=td-heading-self-link href=#examine-pod-logs aria-label="Heading self-link"></a></h2><p>First, look at the logs of the affected container:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl logs <span class=si>${</span><span class=nv>POD_NAME</span><span class=si>}</span> -c <span class=si>${</span><span class=nv>CONTAINER_NAME</span><span class=si>}</span>
+</span></span></code></pre></div><p>If your container has previously crashed, you can access the previous container's crash log with:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl logs <span class=si>${</span><span class=nv>POD_NAME</span><span class=si>}</span> -c <span class=si>${</span><span class=nv>CONTAINER_NAME</span><span class=si>}</span> --previous
+</span></span></code></pre></div><h2 id=container-exec>Debugging with container exec<a class=td-heading-self-link href=#container-exec aria-label="Heading self-link"></a></h2><p>If the <a class=glossary-tooltip title='Stored instance of a container that holds a set of software needed to run an application.' data-bs-toggle=tooltip data-bs-placement=top href='/docs/reference/glossary/?all=true#term-image' target=_blank aria-label='container image'>container image</a> includes
+debugging utilities, as is the case with images built from Linux and Windows OS
+base images, you can run commands inside a specific container with
+<code>kubectl exec</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl <span class=nb>exec</span> <span class=si>${</span><span class=nv>POD_NAME</span><span class=si>}</span> -c <span class=si>${</span><span class=nv>CONTAINER_NAME</span><span class=si>}</span> -- <span class=si>${</span><span class=nv>CMD</span><span class=si>}</span> <span class=si>${</span><span class=nv>ARG1</span><span class=si>}</span> <span class=si>${</span><span class=nv>ARG2</span><span class=si>}</span> ... <span class=si>${</span><span class=nv>ARGN</span><span class=si>}</span>
+</span></span></code></pre></div><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4><code>-c ${CONTAINER_NAME}</code> is optional. You can omit it for Pods that only contain a single container.</div><p>As an example, to look at the logs from a running Cassandra pod, you might run</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl <span class=nb>exec</span> cassandra -- cat /var/log/cassandra/system.log
+</span></span></code></pre></div><p>You can run a shell that's connected to your terminal using the <code>-i</code> and <code>-t</code>
+arguments to <code>kubectl exec</code>, for example:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl <span class=nb>exec</span> -it cassandra -- sh
+</span></span></code></pre></div><p>For more details, see <a href=/docs/tasks/debug/debug-application/get-shell-running-container/>Get a Shell to a Running Container</a>.</p><h2 id=ephemeral-container>Debugging with an ephemeral debug container<a class=td-heading-self-link href=#ephemeral-container aria-label="Heading self-link"></a></h2><div class="feature-state-notice feature-stable"><span class=feature-state-name>Feature state:</span>
+<span class=feature-state-details><span class=feature-state-stage>Stable</span> since Kubernetes v1.25</span></div><p><a class=glossary-tooltip title='A type of container that you can temporarily run inside a Pod.' data-bs-toggle=tooltip data-bs-placement=top href=/docs/concepts/workloads/pods/ephemeral-containers/ target=_blank aria-label='Ephemeral containers'>Ephemeral containers</a>
+are useful for interactive troubleshooting when <code>kubectl exec</code> is insufficient
+because a container has crashed or a container image doesn't include debugging
+utilities, such as with <a href=https://github.com/GoogleContainerTools/distroless>distroless images</a>.</p><h3 id=ephemeral-container-permissions>Permissions for ephemeral containers<a class=td-heading-self-link href=#ephemeral-container-permissions aria-label="Heading self-link"></a></h3><p>For security reasons, adding an ephemeral container to a running Pod uses the Pod's
+<code>ephemeralcontainers</code> subresource. At the API level this is an
+<strong>update</strong> request on <code>pods/ephemeralcontainers</code>. Just being authorized to <strong>patch</strong>
+a Pod does not allow users to add ephemeral containers to that Pod.</p><p>The <code>pods/ephemeralcontainers</code> subresource is intentionally not part of the
+default <code>admin</code> and <code>edit</code>
+<a href=/docs/reference/access-authn-authz/rbac/#user-facing-roles>user-facing ClusterRoles</a>.
+For background on why, see
+<a href=/docs/concepts/workloads/pods/ephemeral-containers/#access-control>Ephemeral Containers: Access control</a>.</p><p>If you run <code>kubectl debug</code> to add an ephemeral container without the required
+permission, you will see an error similar to:</p><pre tabindex=0><code>Error from server (Forbidden): pods &#34;example&#34; is forbidden: User &#34;alice&#34; cannot
+patch resource &#34;pods/ephemeralcontainers&#34; in API group &#34;&#34; in the namespace &#34;example-ns&#34;
+</code></pre><p>If you're managing cluster access and your cluster uses <a href=/docs/reference/access-authn-authz/rbac/>Kubernetes RBAC</a>, you can grant this permission in one of two ways.</p><p>To extend the built-in <code>edit</code> and <code>admin</code> ClusterRoles cluster-wide, create an
+aggregated ClusterRole labeled for
+<a href=/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles>ClusterRole aggregation</a>.
+The <code>aggregate-to-edit</code> label is sufficient because the default <code>edit</code>
+ClusterRole itself aggregates into <code>admin</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRole</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>aggregate-ephemeralcontainers-edit</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>rbac.authorization.k8s.io/aggregate-to-edit</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;true&#34;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>rules</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>apiGroups</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;pods/ephemeralcontainers&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>verbs</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;patch&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;update&#34;</span><span class=p>]</span><span class=w>
+</span></span></span></code></pre></div><p>To grant the permission only to specific users or groups (for example, a
+dedicated debugging or SRE group), create a narrower ClusterRole and bind it
+directly:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io/v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRole</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>debug-ephemeralcontainers</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>rules</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>apiGroups</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>resources</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;pods/ephemeralcontainers&#34;</span><span class=p>]</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>verbs</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;patch&#34;</span><span class=p>,</span><span class=w> </span><span class=s2>&#34;update&#34;</span><span class=p>]</span><span class=w>
+</span></span></span></code></pre></div><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4><p>Ephemeral containers are evaluated by <a href=/docs/concepts/security/pod-security-admission/>Pod Security admission</a>
+against the same <a href=/docs/concepts/security/pod-security-standards/>Pod Security Standards</a>
+as regular containers. When granting permission to add ephemeral containers to
+Pods governed by the <code>baseline</code> or <code>restricted</code> policy, choose a matching
+<a href=#debugging-profiles>debugging profile</a> such as <code>--profile=baseline</code> or
+<code>--profile=restricted</code> with <code>kubectl debug</code>.</p><p>Any admission webhooks or admission policies in your cluster, that do not evaluate
+the <code>ephemeralContainers</code> field, may also need updating to intercept the
+<code>pods/ephemeralcontainers</code> resource and evaluate the <code>ephemeralContainers</code> field in a Pod's spec.</p></div><h3 id=ephemeral-container-example>Example debugging using ephemeral containers<a class=td-heading-self-link href=#ephemeral-container-example aria-label="Heading self-link"></a></h3><p>You can use the <code>kubectl debug</code> command to add ephemeral containers to a
+running Pod. First, create a pod for the example:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl run ephemeral-demo --image<span class=o>=</span>registry.k8s.io/pause:3.1 --restart<span class=o>=</span>Never
+</span></span></code></pre></div><p>The examples in this section use the <code>pause</code> container image because it does not
+contain debugging utilities, but this method works with all container
+images.</p><p>If you attempt to use <code>kubectl exec</code> to create a shell you will see an error
+because there is no shell in this container image.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl <span class=nb>exec</span> -it ephemeral-demo -- sh
+</span></span></code></pre></div><pre tabindex=0><code>OCI runtime exec failed: exec failed: container_linux.go:346: starting container process caused &#34;exec: \&#34;sh\&#34;: executable file not found in $PATH&#34;: unknown
+</code></pre><p>You can instead add a debugging container using <code>kubectl debug</code>. If you
+specify the <code>-i</code>/<code>--interactive</code> argument, <code>kubectl</code> will automatically attach
+to the console of the Ephemeral Container.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl debug -it ephemeral-demo --image<span class=o>=</span>busybox:1.28 --target<span class=o>=</span>ephemeral-demo
+</span></span></code></pre></div><pre tabindex=0><code>Defaulting debug container name to debugger-8xzrl.
+If you don&#39;t see a command prompt, try pressing enter.
+/ #
+</code></pre><p>This command adds a new busybox container and attaches to it. The <code>--target</code>
+parameter targets the process namespace of another container. It's necessary
+here because <code>kubectl run</code> does not enable <a href=/docs/tasks/configure-pod-container/share-process-namespace/>process namespace sharing</a> in the pod it
+creates.</p><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4>The <code>--target</code> parameter must be supported by the <a class=glossary-tooltip title='The container runtime is the software that is responsible for running containers.' data-bs-toggle=tooltip data-bs-placement=top href=/docs/setup/production-environment/container-runtimes target=_blank aria-label='Container Runtime'>Container Runtime</a>. When not supported,
+the Ephemeral Container may not be started, or it may be started with an
+isolated process namespace so that <code>ps</code> does not reveal processes in other
+containers.</div><p>You can view the state of the newly created ephemeral container using <code>kubectl describe</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl describe pod ephemeral-demo
+</span></span></code></pre></div><pre tabindex=0><code>...
+Ephemeral Containers:
+  debugger-8xzrl:
+    Container ID:   docker://b888f9adfd15bd5739fefaa39e1df4dd3c617b9902082b1cfdc29c4028ffb2eb
+    Image:          busybox
+    Image ID:       docker-pullable://busybox@sha256:1828edd60c5efd34b2bf5dd3282ec0cc04d47b2ff9caa0b6d4f07a21d1c08084
+    Port:           &lt;none&gt;
+    Host Port:      &lt;none&gt;
+    State:          Running
+      Started:      Wed, 12 Feb 2020 14:25:42 +0100
+    Ready:          False
+    Restart Count:  0
+    Environment:    &lt;none&gt;
+    Mounts:         &lt;none&gt;
+...
+</code></pre><p>Use <code>kubectl delete</code> to remove the Pod when you're finished:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl delete pod ephemeral-demo
+</span></span></code></pre></div><h2 id=debugging-using-a-copy-of-the-pod>Debugging using a copy of the Pod<a class=td-heading-self-link href=#debugging-using-a-copy-of-the-pod aria-label="Heading self-link"></a></h2><p>Sometimes Pod configuration options make it difficult to troubleshoot in certain
+situations. For example, you can't run <code>kubectl exec</code> to troubleshoot your
+container if your container image does not include a shell or if your application
+crashes on startup. In these situations you can use <code>kubectl debug</code> to create a
+copy of the Pod with configuration values changed to aid debugging.</p><h3 id=copying-a-pod-while-adding-a-new-container>Copying a Pod while adding a new container<a class=td-heading-self-link href=#copying-a-pod-while-adding-a-new-container aria-label="Heading self-link"></a></h3><p>Adding a new container can be useful when your application is running but not
+behaving as you expect and you'd like to add additional troubleshooting
+utilities to the Pod.</p><p>For example, maybe your application's container images are built on <code>busybox</code>
+but you need debugging utilities not included in <code>busybox</code>. You can simulate
+this scenario using <code>kubectl run</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl run myapp --image<span class=o>=</span>busybox:1.28 --restart<span class=o>=</span>Never -- sleep 1d
+</span></span></code></pre></div><p>Run this command to create a copy of <code>myapp</code> named <code>myapp-debug</code> that adds a
+new Ubuntu container for debugging:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl debug myapp -it --image<span class=o>=</span>ubuntu --share-processes --copy-to<span class=o>=</span>myapp-debug
+</span></span></code></pre></div><pre tabindex=0><code>Defaulting debug container name to debugger-w7xmf.
+If you don&#39;t see a command prompt, try pressing enter.
+root@myapp-debug:/#
+</code></pre><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4><ul><li><code>kubectl debug</code> automatically generates a container name if you don't choose
+one using the <code>--container</code> flag.</li><li>The <code>-i</code> flag causes <code>kubectl debug</code> to attach to the new container by
+default. You can prevent this by specifying <code>--attach=false</code>. If your session
+becomes disconnected you can reattach using <code>kubectl attach</code>.</li><li>The <code>--share-processes</code> allows the containers in this Pod to see processes
+from the other containers in the Pod. For more information about how this
+works, see <a href=/docs/tasks/configure-pod-container/share-process-namespace/>Share Process Namespace between Containers in a Pod</a>.</li></ul></div><p>Don't forget to clean up the debugging Pod when you're finished with it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl delete pod myapp myapp-debug
+</span></span></code></pre></div><h3 id=copying-a-pod-while-changing-its-command>Copying a Pod while changing its command<a class=td-heading-self-link href=#copying-a-pod-while-changing-its-command aria-label="Heading self-link"></a></h3><p>Sometimes it's useful to change the command for a container, for example to
+add a debugging flag or because the application is crashing.</p><p>To simulate a crashing application, use <code>kubectl run</code> to create a container
+that immediately exits:</p><pre tabindex=0><code>kubectl run --image=busybox:1.28 myapp -- false
+</code></pre><p>You can see using <code>kubectl describe pod myapp</code> that this container is crashing:</p><pre tabindex=0><code>Containers:
+  myapp:
+    Image:         busybox
+    ...
+    Args:
+      false
+    State:          Waiting
+      Reason:       CrashLoopBackOff
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    1
+</code></pre><p>You can use <code>kubectl debug</code> to create a copy of this Pod with the command
+changed to an interactive shell:</p><pre tabindex=0><code>kubectl debug myapp -it --copy-to=myapp-debug --container=myapp -- sh
+</code></pre><pre tabindex=0><code>If you don&#39;t see a command prompt, try pressing enter.
+/ #
+</code></pre><p>Now you have an interactive shell that you can use to perform tasks like
+checking filesystem paths or running the container command manually.</p><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4><ul><li>To change the command of a specific container you must
+specify its name using <code>--container</code> or <code>kubectl debug</code> will instead
+create a new container to run the command you specified.</li><li>The <code>-i</code> flag causes <code>kubectl debug</code> to attach to the container by default.
+You can prevent this by specifying <code>--attach=false</code>. If your session becomes
+disconnected you can reattach using <code>kubectl attach</code>.</li></ul></div><p>Don't forget to clean up the debugging Pod when you're finished with it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl delete pod myapp myapp-debug
+</span></span></code></pre></div><h3 id=copying-a-pod-while-changing-container-images>Copying a Pod while changing container images<a class=td-heading-self-link href=#copying-a-pod-while-changing-container-images aria-label="Heading self-link"></a></h3><p>In some situations you may want to change a misbehaving Pod from its normal
+production container images to an image containing a debugging build or
+additional utilities.</p><p>As an example, create a Pod using <code>kubectl run</code>:</p><pre tabindex=0><code>kubectl run myapp --image=busybox:1.28 --restart=Never -- sleep 1d
+</code></pre><p>Now use <code>kubectl debug</code> to make a copy and change its container image
+to <code>ubuntu</code>:</p><pre tabindex=0><code>kubectl debug myapp --copy-to=myapp-debug --set-image=*=ubuntu
+</code></pre><p>The syntax of <code>--set-image</code> uses the same <code>container_name=image</code> syntax as
+<code>kubectl set image</code>. <code>*=ubuntu</code> means change the image of all containers
+to <code>ubuntu</code>.</p><p>Don't forget to clean up the debugging Pod when you're finished with it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl delete pod myapp myapp-debug
+</span></span></code></pre></div><h2 id=node-shell-session>Debugging via a shell on the node<a class=td-heading-self-link href=#node-shell-session aria-label="Heading self-link"></a></h2><p>If none of these approaches work, you can find the Node on which the Pod is
+running and create a Pod running on the Node. To create
+an interactive shell on a Node using <code>kubectl debug</code>, run:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl debug node/mynode -it --image<span class=o>=</span>ubuntu
+</span></span></code></pre></div><pre tabindex=0><code>Creating debugging pod node-debugger-mynode-pdx84 with container debugger on node mynode.
+If you don&#39;t see a command prompt, try pressing enter.
+root@ek8s:/#
+</code></pre><p>When creating a debugging session on a node, keep in mind that:</p><ul><li><code>kubectl debug</code> automatically generates the name of the new Pod based on
+the name of the Node.</li><li>The root filesystem of the Node will be mounted at <code>/host</code>.</li><li>The container runs in the host IPC, Network, and PID namespaces, although
+the pod isn't privileged, so reading some process information may fail,
+and <code>chroot /host</code> may fail.</li><li>If you need a privileged pod, create it manually or use the <code>--profile=sysadmin</code> flag.</li></ul><p>Don't forget to clean up the debugging Pod when you're finished with it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl delete pod node-debugger-mynode-pdx84
+</span></span></code></pre></div><h3 id=capturing-and-analyzing-node-pod-traffic>Capturing and analyzing Node/Pod traffic<a class=td-heading-self-link href=#capturing-and-analyzing-node-pod-traffic aria-label="Heading self-link"></a></h3><p>When debugging networking issues, capturing and analyzing network traffic from Nodes/Pods can provide valuable insights
+into connectivity problems, DNS resolution failures, or unexpected network behavior.</p><p>You can use <code>kubectl debug</code> with the <code>--profile=sysadmin</code> flag to run network capture tools on a node.
+First, create a debugging session on the node where your Pod is running:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl debug --profile<span class=o>=</span>sysadmin node/<span class=si>${</span><span class=nv>NODE_NAME</span><span class=si>}</span> -it --image<span class=o>=</span>ubuntu:latest
+</span></span></code></pre></div><p>Once inside the debug container, install tcpdump and capture traffic on the node's network interfaces:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>apt-get update <span class=o>&amp;&amp;</span> apt-get install -y tcpdump
+</span></span><span class=line><span class=cl>tcpdump -i any -n
+</span></span></code></pre></div><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4><p>Don't forget to clean up the debugging Pod when you're finished with it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl delete pod node-debugger-mynode-pdx84
+</span></span></code></pre></div></div><p>You can also capture traffic from a specific Pod:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl debug --profile<span class=o>=</span>sysadmin pod/<span class=si>${</span><span class=nv>POD_NAME</span><span class=si>}</span> -n <span class=si>${</span><span class=nv>NAMESPACE</span><span class=si>}</span> -it --image<span class=o>=</span>ubuntu:latest
+</span></span></code></pre></div><p>And then perform the same <code>tcpdump</code> command inside the debug container to capture traffic from the Pod's network namespace.</p><h2 id=debugging-profiles>Debugging a Pod or Node while applying a profile<a class=td-heading-self-link href=#debugging-profiles aria-label="Heading self-link"></a></h2><p>When using <code>kubectl debug</code> to debug a node via a debugging Pod, a Pod via an ephemeral container,
+or a copied Pod, you can apply a profile to them.
+By applying a profile, specific properties such as <a href=/docs/tasks/configure-pod-container/security-context/>securityContext</a>
+are set, allowing for adaptation to various scenarios.
+There are two types of profiles, static profile and custom profile.</p><h3 id=static-profile>Applying a Static Profile<a class=td-heading-self-link href=#static-profile aria-label="Heading self-link"></a></h3><p>A static profile is a set of predefined properties, and you can apply them using the <code>--profile</code> flag.
+The available profiles are as follows:</p><table><thead><tr><th>Profile</th><th>Description</th></tr></thead><tbody><tr><td>legacy</td><td>A set of properties backwards compatibility with 1.22 behavior</td></tr><tr><td>general</td><td>A reasonable set of generic properties for each debugging journey</td></tr><tr><td>baseline</td><td>A set of properties compatible with <a href=/docs/concepts/security/pod-security-standards/#baseline>PodSecurityStandard baseline policy</a></td></tr><tr><td>restricted</td><td>A set of properties compatible with <a href=/docs/concepts/security/pod-security-standards/#restricted>PodSecurityStandard restricted policy</a></td></tr><tr><td>netadmin</td><td>A set of properties including Network Administrator privileges</td></tr><tr><td>sysadmin</td><td>A set of properties including System Administrator (root) privileges</td></tr></tbody></table><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4>If you don't specify <code>--profile</code>, the <code>legacy</code> profile is used by default, but it is planned to be deprecated in the near future.
+So it is recommended to use other profiles such as <code>general</code>.</div><p>Assume that you create a Pod and debug it.
+First, create a Pod named <code>myapp</code> as an example:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl run myapp --image<span class=o>=</span>busybox:1.28 --restart<span class=o>=</span>Never -- sleep 1d
+</span></span></code></pre></div><p>Then, debug the Pod using an ephemeral container.
+If the ephemeral container needs to have privilege, you can use the <code>sysadmin</code> profile:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl debug -it myapp --image<span class=o>=</span>busybox:1.28 --target<span class=o>=</span>myapp --profile<span class=o>=</span>sysadmin
+</span></span></code></pre></div><pre tabindex=0><code>Targeting container &#34;myapp&#34;. If you don&#39;t see processes from this container it may be because the container runtime doesn&#39;t support this feature.
+Defaulting debug container name to debugger-6kg4x.
+If you don&#39;t see a command prompt, try pressing enter.
+/ #
+</code></pre><p>Check the capabilities of the ephemeral container process by running the following command inside the container:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>/ <span class=c1># grep Cap /proc/$$/status</span>
+</span></span></code></pre></div><pre tabindex=0><code>...
+CapPrm:	000001ffffffffff
+CapEff:	000001ffffffffff
+...
+</code></pre><p>This means the container process is granted full capabilities as a privileged container by applying <code>sysadmin</code> profile.
+See more details about <a href=/docs/tasks/configure-pod-container/security-context/#set-capabilities-for-a-container>capabilities</a>.</p><p>You can also check that the ephemeral container was created as a privileged container:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod myapp -o <span class=nv>jsonpath</span><span class=o>=</span><span class=s1>&#39;{.spec.ephemeralContainers[0].securityContext}&#39;</span>
+</span></span></code></pre></div><pre tabindex=0><code>{&#34;privileged&#34;:true}
+</code></pre><p>Clean up the Pod when you're finished with it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl delete pod myapp
+</span></span></code></pre></div><h3 id=custom-profile>Applying Custom Profile<a class=td-heading-self-link href=#custom-profile aria-label="Heading self-link"></a></h3><div class="feature-state-notice feature-stable"><span class=feature-state-name>Feature state:</span>
+<span class=feature-state-details><span class=feature-state-stage>Stable</span> since Kubernetes v1.32</span></div><p>You can define a partial container spec for debugging as a custom profile in either YAML or JSON format,
+and apply it using the <code>--custom</code> flag.</p><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4>Custom profile only supports the modification of the container spec,
+but modifications to <code>name</code>, <code>image</code>, <code>command</code>, <code>lifecycle</code> and <code>volumeDevices</code> fields of the container spec
+are not allowed.
+It does not support the modification of the Pod spec.</div><p>Create a Pod named myapp as an example:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl run myapp --image<span class=o>=</span>busybox:1.28 --restart<span class=o>=</span>Never -- sleep 1d
+</span></span></code></pre></div><p>Create a custom profile in YAML or JSON format.
+Here, create a YAML format file named <code>custom-profile.yaml</code>:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>env</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>ENV_VAR_1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>value_1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>ENV_VAR_2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>value</span><span class=p>:</span><span class=w> </span><span class=l>value_2</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>securityContext</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>capabilities</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>add</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=l>NET_ADMIN</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=l>SYS_TIME</span><span class=w>
+</span></span></span></code></pre></div><p>Run this command to debug the Pod using an ephemeral container with the custom profile:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl debug -it myapp --image<span class=o>=</span>busybox:1.28 --target<span class=o>=</span>myapp --profile<span class=o>=</span>general --custom<span class=o>=</span>custom-profile.yaml
+</span></span></code></pre></div><p>You can check that the ephemeral container has been added to the target Pod with the custom profile applied:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod myapp -o <span class=nv>jsonpath</span><span class=o>=</span><span class=s1>&#39;{.spec.ephemeralContainers[0].env}&#39;</span>
+</span></span></code></pre></div><pre tabindex=0><code>[{&#34;name&#34;:&#34;ENV_VAR_1&#34;,&#34;value&#34;:&#34;value_1&#34;},{&#34;name&#34;:&#34;ENV_VAR_2&#34;,&#34;value&#34;:&#34;value_2&#34;}]
+</code></pre><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod myapp -o <span class=nv>jsonpath</span><span class=o>=</span><span class=s1>&#39;{.spec.ephemeralContainers[0].securityContext}&#39;</span>
+</span></span></code></pre></div><pre tabindex=0><code>{&#34;capabilities&#34;:{&#34;add&#34;:[&#34;NET_ADMIN&#34;,&#34;SYS_TIME&#34;]}}
+</code></pre><p>Clean up the Pod when you're finished with it:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl delete pod myapp
+</span></span></code></pre></div></div><div class=td-content style=page-break-before:always><h1 id=pg-09530217eead8a801ead3ef165c2f591>7 - Get a Shell to a Running Container</h1><p>This page shows how to use <code>kubectl exec</code> to get a shell to a
+running container.</p><h2 id=before-you-begin>Before you begin<a class=td-heading-self-link href=#before-you-begin aria-label="Heading self-link"></a></h2><p>You need to have a Kubernetes cluster, and the kubectl command-line tool must
+be configured to communicate with your cluster. It is recommended to run this tutorial on a cluster with at least two nodes that are not acting as control plane hosts. If you do not already have a
+cluster, you can create one by using
+<a href=https://minikube.sigs.k8s.io/docs/tutorials/multi_node/>minikube</a>
+or you can use one of these Kubernetes playgrounds:</p><ul><li><a href="https://labs.iximiuz.com/playgrounds?category=kubernetes&filter=all">iximiuz Labs</a></li><li><a href=https://killercoda.com/playgrounds/scenario/kubernetes>Killercoda</a></li><li><a href=https://kodekloud.com/public-playgrounds>KodeKloud</a></li></ul><h2 id=getting-a-shell-to-a-container>Getting a shell to a container<a class=td-heading-self-link href=#getting-a-shell-to-a-container aria-label="Heading self-link"></a></h2><p>In this exercise, you create a Pod that has one container. The container
+runs the nginx image. Here is the configuration file for the Pod:</p><div class="highlight code-sample"><div class=copy-code-icon><a href=https://raw.githubusercontent.com/kubernetes/website/main/content/en/examples/application/shell-demo.yaml download=application/shell-demo.yaml><code>application/shell-demo.yaml</code>
+</a><img src=/images/copycode.svg class=icon-copycode onclick='copyCode("application-shell-demo-yaml")' title="Copy application/shell-demo.yaml to clipboard"></img></div><div class=includecode id=application-shell-demo-yaml><div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>shell-demo</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>volumes</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>shared-data</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>emptyDir</span><span class=p>:</span><span class=w> </span>{}<span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>nginx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>volumeMounts</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>shared-data</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>      </span><span class=nt>mountPath</span><span class=p>:</span><span class=w> </span><span class=l>/usr/share/nginx/html</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>hostNetwork</span><span class=p>:</span><span class=w> </span><span class=kc>true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>dnsPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Default</span><span class=w>
+</span></span></span></code></pre></div></div></div><p>Create the Pod:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl apply -f https://k8s.io/examples/application/shell-demo.yaml
+</span></span></code></pre></div><p>Verify that the container is running:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl get pod shell-demo
+</span></span></code></pre></div><p>Get a shell to the running container:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl <span class=nb>exec</span> --stdin --tty shell-demo -- /bin/bash
+</span></span></code></pre></div><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4>The double dash (<code>--</code>) separates the arguments you want to pass to the command from the kubectl arguments.</div><p>In your shell, list the root directory:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1># Run this inside the container</span>
+</span></span><span class=line><span class=cl>ls /
+</span></span></code></pre></div><p>In your shell, experiment with other commands. Here are
+some examples:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1># You can run these example commands inside the container</span>
+</span></span><span class=line><span class=cl>ls /
+</span></span><span class=line><span class=cl>cat /proc/mounts
+</span></span><span class=line><span class=cl>cat /proc/1/maps
+</span></span><span class=line><span class=cl>apt-get update
+</span></span><span class=line><span class=cl>apt-get install -y tcpdump
+</span></span><span class=line><span class=cl>tcpdump
+</span></span><span class=line><span class=cl>apt-get install -y lsof
+</span></span><span class=line><span class=cl>lsof
+</span></span><span class=line><span class=cl>apt-get install -y procps
+</span></span><span class=line><span class=cl>ps aux
+</span></span><span class=line><span class=cl>ps aux <span class=p>|</span> grep nginx
+</span></span></code></pre></div><h2 id=writing-the-root-page-for-nginx>Writing the root page for nginx<a class=td-heading-self-link href=#writing-the-root-page-for-nginx aria-label="Heading self-link"></a></h2><p>Look again at the configuration file for your Pod. The Pod
+has an <code>emptyDir</code> volume, and the container mounts the volume
+at <code>/usr/share/nginx/html</code>.</p><p>In your shell, create an <code>index.html</code> file in the <code>/usr/share/nginx/html</code>
+directory:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1># Run this inside the container</span>
+</span></span><span class=line><span class=cl><span class=nb>echo</span> <span class=s1>&#39;Hello shell demo&#39;</span> &gt; /usr/share/nginx/html/index.html
+</span></span></code></pre></div><p>In your shell, send a GET request to the nginx server:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=c1># Run this in the shell inside your container</span>
+</span></span><span class=line><span class=cl>apt-get update
+</span></span><span class=line><span class=cl>apt-get install curl
+</span></span><span class=line><span class=cl>curl http://localhost/
+</span></span></code></pre></div><p>The output shows the text that you wrote to the <code>index.html</code> file:</p><pre tabindex=0><code>Hello shell demo
+</code></pre><p>When you are finished with your shell, enter <code>exit</code>.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl><span class=nb>exit</span> <span class=c1># To quit the shell in the container</span>
+</span></span></code></pre></div><h2 id=running-individual-commands-in-a-container>Running individual commands in a container<a class=td-heading-self-link href=#running-individual-commands-in-a-container aria-label="Heading self-link"></a></h2><p>In an ordinary command window, not your shell, list the environment
+variables in the running container:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl <span class=nb>exec</span> shell-demo -- env
+</span></span></code></pre></div><p>Experiment with running other commands. Here are some examples:</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl <span class=nb>exec</span> shell-demo -- ps aux
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> shell-demo -- ls /
+</span></span><span class=line><span class=cl>kubectl <span class=nb>exec</span> shell-demo -- cat /proc/1/mounts
+</span></span></code></pre></div><h2 id=opening-a-shell-when-a-pod-has-more-than-one-container>Opening a shell when a Pod has more than one container<a class=td-heading-self-link href=#opening-a-shell-when-a-pod-has-more-than-one-container aria-label="Heading self-link"></a></h2><p>If a Pod has more than one container, use <code>--container</code> or <code>-c</code> to
+specify a container in the <code>kubectl exec</code> command. For example,
+suppose you have a Pod named my-pod, and the Pod has two containers
+named <em>main-app</em> and <em>helper-app</em>. The following command would open a
+shell to the <em>main-app</em> container.</p><div class=highlight><pre tabindex=0 class=chroma><code class=language-shell data-lang=shell><span class=line><span class=cl>kubectl <span class=nb>exec</span> -i -t my-pod --container main-app -- /bin/bash
+</span></span></code></pre></div><div class="alert alert-info" role=note><h4 class=alert-heading>Note:</h4>The short options <code>-i</code> and <code>-t</code> are the same as the long options <code>--stdin</code> and <code>--tty</code></div><h2 id=what-s-next>What's next<a class=td-heading-self-link href=#what-s-next aria-label="Heading self-link"></a></h2><ul><li>Read about <a href=/docs/reference/generated/kubectl/kubectl-commands/#exec>kubectl exec</a></li></ul></div></main></div></div><footer class="bg-dark py-5 row d-print-none"><div class="container-fluid mx-sm-5"><div class=row><div class="col col-sm-3 text-xs-center order-1"><ul class="list-inline mb-0 footer-icons"><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title=YouTube><a class=text-white target=_blank rel=noopener href=https://youtube.com/kubernetescommunity aria-label=YouTube><i class="fa-brands fa-youtube"></i></a></li><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title=Forum><a class=text-white target=_blank rel=noopener href=https://discuss.kubernetes.io aria-label=Forum><i class="fa-solid fa-envelope"></i></a></li><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title="Server Fault"><a class=text-white target=_blank rel=noopener href=https://serverfault.com/questions/tagged/kubernetes aria-label="Server Fault"><i class="fa-brands fa-stack-overflow"></i></a></li><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title=LinkedIn><a class=text-white target=_blank rel=noopener href=https://www.linkedin.com/company/kubernetes/ aria-label=LinkedIn><i class="fa-brands fa-linkedin"></i></a></li><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title=Bluesky><a class=text-white target=_blank rel=noopener href=https://bsky.app/profile/kubernetes.io aria-label=Bluesky><i class="fa-brands fa-bluesky"></i></a></li><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title="X (formerly Twitter)"><a class=text-white target=_blank rel=noopener href=https://x.com/kubernetesio aria-label="X (formerly Twitter)"><i class="fa-brands fa-x-twitter"></i></a></li></ul></div><div class="col-5 col-sm-6 text-center order-2 footer-main"><p><span class=copyright-notice>&copy; 2026 The Kubernetes Authors | Documentation Distributed under <a href=https://git.k8s.io/website/LICENSE class=light-text>CC BY 4.0</a></span></p><p><span class=copyright-notice>&copy; 2026 Copyright &copy; Kubernetes a Series of LF Projects, LLC. For website terms of use, trademark policy and other project policies please see <a href=https://lfprojects.org/policies/ class=light-text>https://lfprojects.org/policies/</a></span></p><p><span class=certification-notice>ICP license: 京ICP备17074266号-3</span></p></div><div class="col col-sm-3 text-end text-xs-center order-3"><ul class="list-inline mb-0 footer-icons"><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title="Contributor website"><a class=text-white target=_blank rel=noopener href=https://k8s.dev/ aria-label="Contributor website"><i class="fa-solid fa-laptop-code"></i></a></li><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title=GitHub><a class=text-white target=_blank rel=noopener href=https://github.com/kubernetes/kubernetes aria-label=GitHub><i class="fa-brands fa-github"></i></a></li><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title=Slack><a class=text-white target=_blank rel=noopener href=https://slack.k8s.io aria-label=Slack><i class="fa-brands fa-slack"></i></a></li><li class="list-inline-item mx-2 h3" data-bs-toggle=tooltip data-bs-placement=top title="Events Calendar"><a class=text-white target=_blank rel=noopener href="https://calendar.google.com/calendar/embed?src=calendar%40kubernetes.io" aria-label="Events Calendar"><i class="fa-solid fa-calendar-days"></i></a></li></ul></div></div></div></footer></div><script src=/js/main.min.e9282dfda597601de0c44edcf9f9436a1617b759dfd9bce3b9741a68600ef528.js integrity="sha256-6Sgt/aWXYB3gxE7c+flDahYXt1nf2bzjuXQaaGAO9Sg=" crossorigin=anonymous></script><script src=/js/tabpane-persist.js></script><script src=/js/theme-image-swap.min.88f931f9bc2b0a9831f03c73f97e158e30850b7a3a294b79e9d61475bb504d10.js integrity="sha256-iPkx+bwrCpgx8Dxz+X4VjjCFC3o6KUt56dYUdbtQTRA=" crossorigin=anonymous></script><script defer src=/js/detect-js.min.01b26bef8719aa29fb17d861978451b8fbee4b6d1576627b1e1c94dba3084ecc.js integrity="sha256-AbJr74cZqin7F9hhl4RRuPvuS20VdmJ7HhyU26MITsw=" crossorigin=anonymous></script></body></html>
