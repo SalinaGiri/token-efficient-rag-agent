@@ -198,6 +198,10 @@ def cmd_analyze(a):
     agr = an.judge_agreement(MANUAL)
     if agr:
         lines += ["", f"Judge agreement with your manual grades: {agr[0]}/{agr[1]} ({100 * agr[0] / agr[1]:.0f}%)"]
+        kap = an.judge_kappa(MANUAL)
+        if kap:
+            lines.append(f"Cohen's kappa (judge vs manual, n = {kap[1]}): {kap[0]:.2f}")
+    lines += _extra_analyses(scored, rows, lat, keep)
     (cfg.RESULTS / "stats.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 
@@ -214,6 +218,76 @@ def cmd_analyze(a):
                  ["variant", "input_tokens", "output_tokens", "ttft_s", "latency_s", "correct_pct", "good_pct",
                   "citation_precision_pct", "abstention_acc_pct", "tcca", "placeholder"])
     print("Wrote report/results.csv and report/latency_fit.csv. Next: python run.py report")
+
+
+def _model_facts():
+    """Model file size and KV-cache bytes per token, read from Ollama (cached in results/model_facts.json)."""
+    path = cfg.RESULTS / "model_facts.json"
+    try:
+        import requests
+        tags = requests.get(f"{cfg.OLLAMA_URL}/api/tags", timeout=5).json()["models"]
+        size = next(m["size"] for m in tags if m["name"] == cfg.LLM_MODEL)
+        info = requests.post(f"{cfg.OLLAMA_URL}/api/show", json={"model": cfg.LLM_MODEL}, timeout=5).json()["model_info"]
+        arch = info["general.architecture"]
+        layers, heads = info[f"{arch}.block_count"], info[f"{arch}.attention.head_count"]
+        kv_heads, width = info[f"{arch}.attention.head_count_kv"], info[f"{arch}.embedding_length"]
+        facts = {"model": cfg.LLM_MODEL, "file_bytes": size, "parameters": info.get("general.parameter_count"),
+                 "layers": layers, "kv_heads": kv_heads, "head_dim": width // heads,
+                 # K and V, per layer, per KV head, f16 (2 bytes): what each new token adds to the KV cache
+                 "kv_bytes_per_token": 2 * layers * kv_heads * (width // heads) * 2}
+        path.write_text(json.dumps(facts, indent=2))
+        return facts
+    except Exception:
+        return json.loads(path.read_text()) if path.exists() else None
+
+
+def _extra_analyses(scored, rows, lat, keep):
+    lines = []
+    # 1. Tuning bias: TAU chosen on held-out folds vs on all questions
+    if any(r["experiment"] == "sweep" for r in scored):
+        trade = an.tradeoff_rows(scored, cfg.TAU_SWEEP)
+        an.write_csv([{k: (round(v, 2) if isinstance(v, float) else v) for k, v in r.items()} for r in trade],
+                     cfg.REPORT / "tradeoff.csv")
+        for v in ("V3", "V1"):
+            cv = an.cross_validated_tau(scored, cfg.TAU_SWEEP, v, cfg.NONINFERIORITY_POINTS,
+                                        cfg.CV_FOLDS, cfg.CV_REPEATS)
+            lines += ["", f"Cross-validated TAU for {v} ({cv['folds']}-fold x {cv['repeats']}, sweep data): "
+                      f"in-sample TAU {cv['tau_in_sample']} gives {cv['in_sample_correct_pct']:.1f}% correct, "
+                      f"held-out {cv['cv_correct_pct']:.1f}% (optimism {cv['optimism_points']:+.1f} points); "
+                      f"abstention {cv['in_sample_abstention_pct']:.0f}% vs {cv['cv_abstention_pct']:.0f}%; "
+                      f"TCCA {cv['in_sample_tcca']:.0f} vs {cv['cv_tcca']:.0f}; TAU picks per fold: {cv['tau_picks']}"]
+    # 2. Hardware: decode speed vs memory-bandwidth ceiling
+    facts = _model_facts()
+    ctx = an.decode_by_context([r for r in load_runs() if keep(r)])
+    hw = an.hardware_limits(lat, facts and facts["file_bytes"], cfg.HW_MEMORY_BANDWIDTH_GB_S,
+                            facts and facts["kv_bytes_per_token"], ctx)
+    if hw:
+        lines += ["", f"Hardware ({cfg.HW_NAME}, {hw['bandwidth_gb_s']} GB/s, model file {hw['model_gb']:.2f} GB): "
+                  f"decode ceiling {hw['decode_ceiling_tok_s']:.0f} tok/s, measured {hw['decode_measured_tok_s']:.1f} tok/s "
+                  f"({hw['bandwidth_utilisation_pct']:.0f}% of the bandwidth limit); "
+                  f"prefill measured {hw['prefill_measured_tok_s']:.0f} tok/s"]
+        if "kv_cache_gb_long_prompt" in hw:
+            lines.append(f"KV cache: {hw['kv_bytes_per_token'] / 1024:.0f} KiB per token, "
+                         f"{hw['kv_cache_gb_long_prompt']:.2f} GB for a mean long prompt; "
+                         f"decode ceiling with it {hw['decode_ceiling_long_prompt_tok_s']:.0f} tok/s")
+        an.write_csv([{k: (round(v, 3) if isinstance(v, float) else v) for k, v in hw.items()}],
+                     cfg.RESULTS / "hardware.csv")
+    for name, c in ctx.items():
+        lines.append(f"Decode with {name} prompts (mean {c['mean_prompt_tokens']:.0f} tokens, n = {c['n']}): "
+                     f"{c['ms_per_output_token']:.1f} ms per output token")
+    # 3. Scale projection, V3 vs V0, measured averages only
+    by = {r["key"]: r for r in rows}
+    if "V0" in by and "V3" in by:
+        sp = an.scale_projection(by["V0"], by["V3"], lat, cfg.SCALE_QUERIES_PER_DAY,
+                                 cfg.PRICE_INPUT_PER_M, cfg.PRICE_OUTPUT_PER_M)
+        line = (f"Scale projection, V3 vs V0 at {sp['queries_per_day']:,} queries/day: "
+                f"{sp['input_tokens_saved_per_day'] / 1e6:.0f}M input and {sp['output_tokens_saved_per_day'] / 1e6:.1f}M "
+                f"output tokens saved per day; {sp['latency_saved_s_per_query']:.2f} s faster per query, "
+                f"{sp['machine_hours_saved_per_day']:.0f} machine-hours per day on this hardware")
+        if "api_cost_saved_per_day" in sp:
+            line += f"; API cost saved {sp['api_cost_saved_per_day']:.2f} {cfg.PRICE_CURRENCY}/day"
+        lines += ["", line]
+    return lines
 
 
 def cmd_report(a):

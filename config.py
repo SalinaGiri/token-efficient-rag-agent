@@ -46,3 +46,12 @@ JUDGE = {
     "base_url": "https://api.deepseek.com/v1",   # only used for backend "openai"
     "api_key_env": "JUDGE_API_KEY",              # name of the environment variable with your key
 }
+
+# ---------- Extra analyses ----------
+CV_FOLDS, CV_REPEATS = 5, 20            # cross-validated TAU: stratified k-fold, repeated with new shuffles
+HW_NAME = "Apple M4 (MacBook)"
+HW_MEMORY_BANDWIDTH_GB_S = 120          # Apple's published unified-memory bandwidth for the M4 chip
+SCALE_QUERIES_PER_DAY = 100_000         # volume for the scale projection
+PRICE_INPUT_PER_M = None                # API price per 1M input tokens (fill in from the provider's pricing page)
+PRICE_OUTPUT_PER_M = None               # API price per 1M output tokens
+PRICE_CURRENCY = "USD"
