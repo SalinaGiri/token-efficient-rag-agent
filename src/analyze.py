@@ -151,3 +151,97 @@ def write_csv(rows, path, fields=None):
         w = csv.DictWriter(f, fieldnames=fields or list(rows[0].keys()), extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
+
+
+# ---------- Extra analyses: tuning bias, judge reliability, hardware limits, scale ----------
+
+def subset_metrics(rows):
+    """Correctness, abstention and tokens for a set of first-repeat records (one per question)."""
+    ans = [r for r in rows if not r["unanswerable"]]
+    unans = [r for r in rows if r["unanswerable"]]
+    n_good = sum(r["good"] for r in rows)
+    tokens = sum(r["prompt_tokens"] + r["output_tokens"] for r in rows)
+    return {"correct_pct": _pct([r["correct"] for r in rows]),
+            "abstention_acc_pct": _pct([r["correct"] for r in unans]) if unans else float("nan"),
+            "answerable_correct_pct": _pct([r["correct"] for r in ans]) if ans else float("nan"),
+            "tcca": tokens / n_good if n_good else float("inf"),
+            "tokens": tokens, "n_good": n_good}
+
+
+def choose_tau(scored, taus, qids, variant="V3", experiment="sweep", margin=3.0):
+    """The sweep's selection rule on a subset of questions: the lowest TCCA among thresholds whose correctness
+    is at most `margin` points below V0 and whose abstention accuracy is not below V0. If none passes,
+    take the most correct threshold (ties: lower TCCA)."""
+    first = [r for r in scored if r["experiment"] == experiment and r["repeat"] == 1 and r["qid"] in qids]
+    base = subset_metrics([r for r in first if r["variant"] == "V0"])
+    cands = []
+    for t in taus:
+        m = subset_metrics([r for r in first if r["variant"] == variant and r["tau"] == t])
+        abst_ok = (m["abstention_acc_pct"] != m["abstention_acc_pct"]          # nan: no unanswerable in subset
+                   or m["abstention_acc_pct"] >= base["abstention_acc_pct"])
+        passes = m["correct_pct"] >= base["correct_pct"] - margin and abst_ok
+        cands.append((t, m, passes))
+    ok = [c for c in cands if c[2]]
+    if ok:
+        return min(ok, key=lambda c: c[1]["tcca"])[0], True
+    return max(cands, key=lambda c: (c[1]["correct_pct"], -c[1]["tcca"]))[0], False
+
+
+def cross_validated_tau(scored, taus, variant="V3", margin=3.0, folds=5, repeats=20, seed=11):
+    """Estimate how much choosing TAU on the evaluation questions flatters the result.
+    Stratified k-fold (by question type), repeated with different shuffles: every question is scored at a TAU
+    that was chosen WITHOUT that question. Compares this held-out estimate with the in-sample one."""
+    first = [r for r in scored if r["experiment"] == "sweep" and r["repeat"] == 1]
+    by_q = {}
+    for r in first:
+        by_q.setdefault(r["qid"], r)
+    qtypes = {}
+    for q, r in by_q.items():
+        qtypes.setdefault("unanswerable" if r["unanswerable"] else "answerable", []).append(q)
+    all_q = set(by_q)
+    tau_all, passed_all = choose_tau(scored, taus, all_q, variant, margin=margin)
+    in_sample = subset_metrics([r for r in first if r["variant"] == variant and r["tau"] == tau_all])
+
+    rng = random.Random(seed)
+    held_out, picks = [], {}
+    for _ in range(repeats):
+        fold_of = {}
+        for qs in qtypes.values():
+            qs = sorted(qs)
+            rng.shuffle(qs)
+            for i, q in enumerate(qs):
+                fold_of[q] = i % folds
+        chosen = []
+        for k in range(folds):
+            test = {q for q in all_q if fold_of[q] == k}
+            t, _ = choose_tau(scored, taus, all_q - test, variant, margin=margin)
+            picks[t] = picks.get(t, 0) + 1
+            chosen += [r for r in first if r["variant"] == variant and r["tau"] == t and r["qid"] in test]
+        held_out.append(subset_metrics(chosen))
+    cv = {k: mean(m[k] for m in held_out) for k in ("correct_pct", "abstention_acc_pct", "tcca")}
+    return {"variant": variant, "tau_in_sample": tau_all, "in_sample_passes": passed_all,
+            "in_sample_correct_pct": in_sample["correct_pct"], "cv_correct_pct": cv["correct_pct"],
+            "in_sample_abstention_pct": in_sample["abstention_acc_pct"], "cv_abstention_pct": cv["abstention_acc_pct"],
+            "in_sample_tcca": in_sample["tcca"], "cv_tcca": cv["tcca"],
+            "optimism_points": in_sample["correct_pct"] - cv["correct_pct"],
+            "tau_picks": dict(sorted(picks.items())), "folds": folds, "repeats": repeats}
+
+
+def tradeoff_rows(scored, taus, variants=("V1", "V3")):
+    """One row per (variant, TAU) from the sweep, plus V0, for the tokens-vs-correctness curve."""
+    first = [r for r in scored if r["experiment"] == "sweep" and r["repeat"] == 1]
+    rows = []
+    base = [r for r in first if r["variant"] == "V0"]
+    if base:
+        m = subset_metrics(base)
+        rows.append({"variant": "V0", "tau": "", "tokens_per_query": m["tokens"] / len(base),
+                     "correct_pct": m["correct_pct"], "abstention_acc_pct": m["abstention_acc_pct"], "tcca": m["tcca"]})
+    for v in variants:
+        for t in taus:
+            rs = [r for r in first if r["variant"] == v and r["tau"] == t]
+            if rs:
+                m = subset_metrics(rs)
+                rows.append({"variant": v, "tau": t, "tokens_per_query": m["tokens"] / len(rs),
+                             "correct_pct": m["correct_pct"], "abstention_acc_pct": m["abstention_acc_pct"],
+                             "tcca": m["tcca"]})
+    return rows
