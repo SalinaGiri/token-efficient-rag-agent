@@ -1,6 +1,6 @@
-variant,input_tokens,output_tokens,ttft_s,latency_s,correct_pct,citation_precision_pct,abstention_acc_pct,tcca,placeholder
-V0 Baseline,6000,280,1.10,6.20,70,78,43,9400,yes
-V1 Adaptive retrieval,1400,270,0.45,5.30,72,85,86,2300,yes
-V2 Output budget,6000,90,1.10,2.40,69,80,43,9200,yes
-V3 Optimised,1400,85,0.45,1.80,73,86,86,2100,yes
-VO Oracle,700,80,0.35,1.60,85,95,100,950,yes
+variant,input_tokens,output_tokens,ttft_s,latency_s,correct_pct,good_pct,citation_precision_pct,abstention_acc_pct,tcca,tpca,placeholder
+V0 Baseline,6487,133,22.2,26.12,88,12,0,71,53012,7573,no
+V1 Adaptive retrieval,599,71,2.23,4.04,92,42,100,100,1569,721,no
+V2 Output budget,6556,59,22.15,23.79,70,15,14,43,44079,9446,no
+V3 Optimised,658,36,2.35,3.19,78,72,88,100,957,896,no
+VO Oracle,368,33,1.21,1.98,82,82,100,100,486,486,no
