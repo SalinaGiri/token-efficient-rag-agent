@@ -30,6 +30,30 @@ generates output tokens one at a time (memory-bandwidth-bound). So the experimen
 Headline metric: **TCCA, tokens per correct cited answer** = total tokens ÷ answers that are correct *and* cite a
 passage from the right section (for unanswerable questions: a correct "not found").
 
+## Results
+
+Main run: 40 questions, 5 variants, 3 repeats, Qwen2.5-3B-Instruct on an Apple M4 MacBook Air. The 3-page report is
+[`report/Fewer_Better_Tokens_3page.pdf`](report/Fewer_Better_Tokens_3page.pdf).
+
+<!-- results:start -->
+| Variant | Input tokens | Output tokens | Latency (s) | Correct (%) | Abstain (%) | TPCA | vs V0 (points, p) |
+|---|---:|---:|---:|---:|---:|---:|---|
+| V0 Baseline | 6,487 | 133 | 26.1 | 88 | 71 | 7,573 |  |
+| V1 Adaptive retrieval | 599 | 71 | 4.0 | 92 | 100 | 721 | +5.0, p = 0.73 ✓ |
+| V2 Output budget | 6,556 | 59 | 23.8 | 70 | 43 | 9,446 | -17.5, p = 0.04 |
+| V3 Optimised | 658 | 36 | 3.2 | 78 | 100 | 896 | -10.0, p = 0.34 |
+| VO Oracle | 368 | 33 | 2.0 | 82 | 100 | 486 | -5.0, p = 0.75 |
+
+- 1 output token costs about **8 input tokens** of latency on the Apple M4; decode runs at 65% of the memory-bandwidth ceiling (57 tokens/s).
+- LLM judge vs blind manual grading: 31/33 agree, Cohen's kappa = 0.84.
+- TAU = 0; cross-validation shows tuning on the test questions is optimistic by up to 7 points.
+- ✓ = passes the non-inferiority rule (at most 3 points less correct, no drop in abstention). Full results: `results/stats.md`; report: `report/Fewer_Better_Tokens_3page.pdf`.
+<!-- results:end -->
+
+**In short:** adaptive retrieval (T1) removes about nine in ten input tokens and most of the latency with no loss of
+correctness, and makes the agent say "not found" correctly. A fixed three-sentence output budget (T4) saves output
+tokens but drops secondary facts, so it fails the non-inferiority rule.
+
 ## Quick start
 
 ```
