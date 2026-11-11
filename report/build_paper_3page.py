@@ -83,6 +83,10 @@ if placeholder or not os.path.exists("key_numbers.json"):
 import json
 K = json.load(open("key_numbers.json"))
 CORPUS = json.load(open(os.path.join("..", "data", "corpus_info.json")))
+_RUNS = [json.loads(l) for l in open(os.path.join("..", "results", "runs.jsonl"), encoding="utf-8")]
+N_SWEEP = sum(r["experiment"] == "sweep" for r in _RUNS)
+N_MAIN = sum(r["experiment"] == "main" for r in _RUNS)
+N_LLM = sum(bool(r.get("llm_called")) for r in _RUNS)
 AI_USE = open("ai_use.txt", encoding="utf-8").read().strip() if os.path.exists("ai_use.txt") else ""
 REPO = "https://github.com/SalinaGiri/token-efficient-rag-agent"
 V, C, LAT, HW = K["variants"], K["vs_v0"], K["latency"], K["hardware"]
@@ -162,8 +166,10 @@ s.append(P(
     f"2026: {CORPUS['sections']} sections, {CORPUS['passages']} passages of ~250 tokens, about "
     f"{num(round(CORPUS['approx_tokens_total'], -3))} tokens in total). Test set: 40 questions with reference answers "
     "and gold passages verified against the corpus (25 single-fact, 8 two-passage, 7 unanswerable). Model: "
-    "Qwen2.5-3B-Instruct (Q4_K_M) served by Ollama on an Apple M4 MacBook Air, temperature 0; retrieval with "
-    "all-MiniLM-L6-v2 [16] and a MiniLM cross-encoder [15]."))
+    "Qwen2.5-3B-Instruct (Q4_K_M) served locally by Ollama on an Apple M4 MacBook Air, temperature 0; retrieval with "
+    "all-MiniLM-L6-v2 [16] and a MiniLM cross-encoder [15]. All "
+    f"{num(N_SWEEP + N_MAIN)} runs ({num(N_SWEEP)} in the τ sweep, {num(N_MAIN)} in the main experiment: 40 questions × 5 "
+    f"variants × {K['repeats']} repeats) were executed on this machine, {num(N_LLM)} of them with an Ollama call."))
 s.append(P(
     "<b>Procedure.</b> T1 retrieves 20 candidates, reranks them and keeps up to four with score ≥ τ; if none "
     "qualifies, the agent answers “not found” <i>without calling the LLM</i>. τ was swept over six values and set to "
