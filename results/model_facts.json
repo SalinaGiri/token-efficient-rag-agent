@@ -1,0 +1,9 @@
+{
+  "model": "modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M",
+  "file_bytes": 2104944303,
+  "parameters": 3397103616,
+  "layers": 36,
+  "kv_heads": 2,
+  "head_dim": 128,
+  "kv_bytes_per_token": 36864
+}
