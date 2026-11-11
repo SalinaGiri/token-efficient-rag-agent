@@ -30,6 +30,34 @@ generates output tokens one at a time (memory-bandwidth-bound). So the experimen
 Headline metric: **TCCA, tokens per correct cited answer** = total tokens ÷ answers that are correct *and* cite a
 passage from the right section (for unanswerable questions: a correct "not found").
 
+## Quick start
+
+```
+python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+python -m tests.test_pipeline     # offline check with fake models, no downloads needed
+python run.py --help              # the full experiment, step by step (see below)
+```
+
+## Beyond the averages
+
+Four extra analyses make the comparison harder to fool; all run from `python run.py analyze` on the recorded runs,
+without extra LLM calls.
+
+- **Tuning bias (cross-validated TAU).** `TAU` is chosen on the same 40 questions it is tested on, which flatters
+  V1/V3. Stratified 5-fold cross-validation, repeated 20 times, scores every question at a `TAU` chosen *without*
+  it, and reports the gap to the in-sample result.
+- **Judge reliability (Cohen's kappa).** The LLM judge is compared with a manual check of 20% of the answers.
+  Kappa corrects raw agreement for the agreement expected by chance.
+- **Hardware limits.** Every output token must read all model weights once, so decode speed is capped at
+  memory bandwidth ÷ model size. The measured decode speed is compared with that ceiling, and decode speed is
+  split by prompt length, because each output token also reads the KV cache of the whole prompt. Model size and
+  KV-cache bytes per token are read from Ollama, not assumed.
+- **Scale projection.** Measured per-query savings of V3 over V0, translated to tokens and machine-hours per day
+  at a chosen volume (API cost only if real prices are filled in `config.py`).
+
+The threshold trade-off (tokens vs correctness for every swept `TAU`) is plotted next to the latency exchange rate
+in Figure 2.
+
 ## Project structure
 
 ```
@@ -44,9 +72,10 @@ src/llm.py             Ollama client (measures prefill and decode separately) + 
 src/prompts.py         free-form and budgeted prompts, judge prompt
 src/agent.py           the five variants and the experiment loop (resumable)
 src/judge.py           grading + 20% sample for manual checking
-src/analyze.py         metrics, latency model, McNemar test, bootstrap CI, failure taxonomy
+src/analyze.py         metrics, latency model, McNemar test, bootstrap CI, failure taxonomy,
+                       cross-validated TAU, Cohen's kappa, hardware limits, scale projection
 report/                figure and PDF builders (filled automatically by `run.py analyze`)
-tests/test_pipeline.py offline test with fake models
+tests/test_pipeline.py offline test with fake models (also runs on GitHub Actions)
 ```
 
 ## Setup (macOS, Apple Silicon)
@@ -89,8 +118,10 @@ and export your key: `export JUDGE_API_KEY=...`.
 
 - `results/runs.jsonl`: every single run (tokens, TTFT, prefill/decode time, answer, citations)
 - `results/summary.csv`: one row per variant
-- `results/stats.md`: latency per input/output token, exchange rate, regression, McNemar tests, non-inferiority verdicts, judge agreement
-- `results/sweep_summary.csv`: the threshold trade-off
+- `results/stats.md`: latency per input/output token, exchange rate, regression, McNemar tests, non-inferiority
+  verdicts, judge agreement and kappa, cross-validated TAU, hardware limits, scale projection
+- `results/sweep_summary.csv` and `report/tradeoff.csv`: the threshold trade-off
+- `results/hardware.csv`, `results/model_facts.json`: decode ceiling vs measured speed; model size and KV-cache size
 - `results/regressions.csv`: answers that got worse than the baseline, with an automatic first label
 - `report/*.pdf`: the 3-page submission and the long research-paper version
 
