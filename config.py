@@ -29,7 +29,7 @@ RERANK_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 BASELINE_K = 10               # V0/V2: number of whole sections ("documents")
 CANDIDATES = 20               # T1: passages retrieved before reranking
 KMAX = 4                      # T1: maximum passages kept
-TAU = 0.0                     # T1: relevance threshold (set after `python run.py sweep`)
+TAU = 0.0                     # T1: chosen from the sweep (no TAU passed the rule for V3; fallback: most correct V3)
 TAU_SWEEP = [-1.5, 0.0, 1.0, 2.0, 2.5, 3.0]   # covers the overlap of answerable and unanswerable top scores
 
 # ---------- Experiment ----------
