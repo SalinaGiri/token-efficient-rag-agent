@@ -35,6 +35,8 @@ bul = S("bul", leftIndent=14, bulletIndent=2, spaceAfter=2)
 h1 = S("h1", fontName="TNR-B", fontSize=12.5, leading=15, alignment=TA_LEFT, spaceBefore=6, spaceAfter=3, keepWithNext=1)
 tbl = S("tbl", fontSize=10, leading=11.8, alignment=TA_LEFT)
 tblb = S("tblb", fontName="TNR-B", fontSize=10, leading=11.8, alignment=TA_LEFT)
+tbls = S("tbls", fontSize=9, leading=10.4, alignment=TA_LEFT)
+tblsb = S("tblsb", fontName="TNR-B", fontSize=9, leading=10.4, alignment=TA_LEFT)
 cap = S("cap", fontSize=10, leading=12, alignment=TA_LEFT, spaceBefore=2, spaceAfter=5)
 capk = S("capk", fontSize=10, leading=12, alignment=TA_LEFT, spaceAfter=2, keepWithNext=1)
 abst = S("abst", fontSize=11, leading=13.2, leftIndent=0.6 * cm, rightIndent=0.6 * cm, spaceAfter=3)
@@ -48,8 +50,9 @@ PAGE_W, PAGE_H = A4
 M = 2.0 * cm
 W = PAGE_W - 2 * M
 
-def T(rows, widths):
-    data = [[P(c, tblb) for c in rows[0]]] + [[P(c, tblb if i == 0 else tbl) for i, c in enumerate(r)] for r in rows[1:]]
+def T(rows, widths, small=False):
+    hb, hn = (tblsb, tbls) if small else (tblb, tbl)
+    data = [[P(c, hb) for c in rows[0]]] + [[P(c, hb if i == 0 else hn) for i, c in enumerate(r)] for r in rows[1:]]
     t = Table(data, colWidths=widths, repeatRows=1)
     t.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"),
                            ("LINEABOVE", (0, 0), (-1, 0), 1.0, BLACK), ("LINEBELOW", (0, 0), (-1, 0), 0.6, BLACK),
@@ -73,7 +76,25 @@ doc.addPageTemplates([PageTemplate(id="p", frames=[Frame(M, M, W, PAGE_H - 2 * M
 
 rows = list(csv.DictReader(open("results.csv", newline="")))
 placeholder = any(r["placeholder"].strip().lower() == "yes" for r in rows)
-def val(r, k, fmt="{:,.0f}"): return ph(" ") if placeholder else fmt.format(float(r[k]))
+if placeholder or not os.path.exists("key_numbers.json"):
+    raise SystemExit("No measured results yet: run `python run.py analyze` first (writes results.csv and key_numbers.json).")
+
+# ---------- key numbers: every number in the text is read from key_numbers.json (written by `run.py analyze`) ----------
+import json
+K = json.load(open("key_numbers.json"))
+CORPUS = json.load(open(os.path.join("..", "data", "corpus_info.json")))
+AI_USE = open("ai_use.txt", encoding="utf-8").read().strip() if os.path.exists("ai_use.txt") else ""
+REPO = "https://github.com/SalinaGiri/token-efficient-rag-agent"
+V, C, LAT, HW = K["variants"], K["vs_v0"], K["latency"], K["hardware"]
+v0, v1, v2, v3, vo = (V[k] for k in ("V0", "V1", "V2", "V3", "VO"))
+CTX, CV, J, SC = K["decode_by_context"], K["cv"], K["judge"], K["scale"]
+REG3 = K["regressions"].get("V3", {})
+def num(x, d=0): return f"{x:,.{d}f}"
+def pts(x, d=1): return f"{x:+.{d}f}".replace("-", "−")
+def neg(x, d=1): return f"{x:.{d}f}".replace("-", "−")
+def red(a, b, k): return 100 * (1 - b[k] / a[k])
+def ci(v): return f"95% CI {neg(C[v]['ci_lo'])} to {neg(C[v]['ci_hi'])}; McNemar p = {C[v]['p']:.2f}"
+def val(r, k, fmt="{:,.0f}"): return fmt.format(float(r[k]))
 
 s = []
 # ---------- Title block ----------
@@ -81,7 +102,7 @@ s += [P("Fewer, Better Tokens", S("t", fontName="TNR-B", fontSize=17, leading=21
       P("A Hardware-Aware Approach to Token Efficiency in an Operational Knowledge Assistant",
         S("st", fontName="TNR-I", fontSize=12.5, leading=16, alignment=TA_CENTER, spaceAfter=4)),
       P(f"Salina Giri · Applied Computer Science, UC Leuven-Limburg (UCLL), Belgium · November 2026<br/>"
-        f"Technical exercise, internship 2026-INT-298 · Code and data: {ph('GitHub repository link')}",
+        f"Technical exercise, internship 2026-INT-298 · Code and data: {REPO}",
         S("au", fontSize=10.5, leading=13, alignment=TA_CENTER, spaceAfter=6))]
 rule = Table([[""]], colWidths=[W], rowHeights=[2]); rule.setStyle(TableStyle([("LINEABOVE", (0, 0), (-1, -1), 0.6, BLACK)]))
 s.append(rule)
@@ -89,20 +110,22 @@ s.append(rule)
 s.append(P(
     "<b>Abstract.</b> LLM inference runs in two phases with different hardware behaviour: a parallel, compute-bound "
     "<i>prefill</i> over input tokens and a sequential, memory-bandwidth-bound <i>decode</i> that generates output "
-    "tokens [1, 2]. Most token-reduction work ignores this and counts every token as equal. This paper treats token "
-    "efficiency as a hardware-aware design problem: it reviews five optimisation levers, selects one per phase "
-    "(adaptive retrieval for input, output budgeting for output), and evaluates them in a five-variant ablation on 40 "
-    "questions, including seven unanswerable ones. Two evaluation ideas are introduced: <i>tokens per correct cited "
-    "answer</i> (TCCA) and a measured latency <i>exchange rate</i> between output and input tokens. "
-    + ph("Key findings in one or two sentences."), abst))
+    "tokens [1, 2]. This paper treats token efficiency as a hardware-aware design problem: it reviews five "
+    "optimisation levers, selects one per phase (adaptive retrieval for input, output budgeting for output) and "
+    "evaluates them in a five-variant ablation on 40 questions, seven of them unanswerable. "
+    f"Adaptive retrieval cut input tokens by {red(v0, v1, 'input_tokens'):.0f}% and mean latency from "
+    f"{v0['latency_s']:.1f} s to {v1['latency_s']:.1f} s without loss of correctness, and raised abstention accuracy "
+    f"from {v0['abstention_acc_pct']:.0f}% to {v1['abstention_acc_pct']:.0f}%. Output budgeting cut output tokens by "
+    f"{red(v0, v2, 'output_tokens'):.0f}% but cost {neg(-C['V2']['diff_points'], 0)} points of correctness. On the "
+    f"laptop GPU used, one output token cost only about {LAT['exchange_rate']:.0f} input tokens of latency, so the "
+    "input side dominated.", abst))
 
 # ---------- 1 ----------
 s.append(P("1. Introduction", h1))
 s.append(P(
-    "An operational knowledge assistant sends the LLM system instructions, conversation history, retrieved passages "
-    "and the user’s question, then receives a response. As the knowledge base and conversation grow, tokens per "
-    "request rise, and with them cost, latency and energy. In agents the effect compounds, because context is re-sent "
-    "at every step. Yet cutting tokens carelessly removes evidence or citations. This study asks: <b>(RQ1)</b> how far "
+    "A knowledge assistant sends the LLM instructions, history, retrieved passages and the question. As the knowledge "
+    "base grows, tokens per request rise, and with them cost, latency and energy; in agents the effect compounds at "
+    "every step. Yet cutting tokens carelessly removes evidence or citations. This study asks: <b>(RQ1)</b> how far "
     "can input and output tokens be reduced while correctness stays within a pre-defined margin; <b>(RQ2)</b> do input "
     "and output tokens have different latency costs; and <b>(RQ3)</b> does adaptive retrieval improve correct "
     "abstention on unanswerable questions?"))
@@ -115,8 +138,8 @@ s.append(P(
     "side, Splitwise [1] and DistServe [2] separate the compute-bound prefill from the memory-bound decode, and "
     "PagedAttention [3] shows that the KV cache created by long inputs limits how many users an accelerator can "
     "serve. These works optimise the serving system; this study applies the same phase distinction to the "
-    "<i>application</i>, which decides how many tokens of each kind are sent. Building on the RAG survey in [13], Table 1 organises five levers by the "
-    "question each answers: how much context is needed, what is its smallest form, and how much must be said back."))
+    "<i>application</i>, which decides how many tokens of each kind are sent. Building on the RAG survey in [13], "
+    "Table 1 organises five levers."))
 t1 = [["Lever", "How it works", "Reduces", "Expected benefit", "Risk"],
       ["T1 Adaptive retrieval", "Rerank candidates [15]; keep only passages above a threshold τ, so the number k varies and may be 0 [7, 8].", "Input (prefill, KV cache)", "Shrinks the largest input source; k = 0 gives a token-free “not found”.", "Strict τ drops needed evidence."],
       ["T2 Context compression", "Keep query-relevant sentences or summarise passages [9, 10].", "Input", "As little as 6% of tokens with minimal loss [9].", "Summaries break citation traceability."],
@@ -125,7 +148,7 @@ t1 = [["Lever", "How it works", "Reduces", "Expected benefit", "Risk"],
       ["T5 Model cascade", "Small model first; escalate when a confidence check fails [12].", "Cost per token", "Large cost savings reported [12].", "Failed attempts paid twice."]]
 s.append(P("<b>Table 1.</b> Five levers for reducing token usage. Prompt caching is excluded on purpose: it saves "
            "recomputation, not tokens, and complements every lever.", capk))
-s.append(T(t1, [2.8 * cm, 5.2 * cm, 2.2 * cm, 3.9 * cm, W - 14.1 * cm]))
+s.append(T(t1, [2.5 * cm, 5.6 * cm, 2.2 * cm, 3.9 * cm, W - 14.2 * cm], small=True))
 
 # ---------- 3 ----------
 s.append(P("3. Methodology", h1))
@@ -135,68 +158,111 @@ s.append(P(
     "text verbatim, so every citation still points to a real passage. T2 risks traceability, T3 needs multi-turn data "
     "and T5 a calibrated confidence signal, so they form the next iteration."))
 s.append(P(
-    f"<b>Data and materials.</b> About 80 pages of public operational documentation ({ph('source')}) serve as the "
-    "knowledge base. The test set has 40 questions with reference answers and gold passage IDs: 25 single-fact, 8 "
-    f"two-passage and 7 unanswerable. Model: {ph('model name')}, temperature 0. Passages of ~250 tokens are embedded "
-    "with all-MiniLM-L6-v2 [16] and reranked with a MiniLM cross-encoder [15]."))
+    "<b>Data and materials.</b> Knowledge base: the Kubernetes troubleshooting documentation (snapshot of 10 November "
+    f"2026: {CORPUS['sections']} sections, {CORPUS['passages']} passages of ~250 tokens, about "
+    f"{num(round(CORPUS['approx_tokens_total'], -3))} tokens in total). Test set: 40 questions with reference answers "
+    "and gold passages verified against the corpus (25 single-fact, 8 two-passage, 7 unanswerable). Model: "
+    "Qwen2.5-3B-Instruct (Q4_K_M) served by Ollama on an Apple M4 MacBook Air, temperature 0; retrieval with "
+    "all-MiniLM-L6-v2 [16] and a MiniLM cross-encoder [15]."))
 s.append(P(
     "<b>Procedure.</b> T1 retrieves 20 candidates, reranks them and keeps up to four with score ≥ τ; if none "
-    "qualifies, the agent answers “not found” <i>without calling the LLM</i>. τ is swept over six values to "
-    "map the trade-off. T4 enforces an answer contract (answer first, at most three sentences, passage IDs as "
-    "citations) with a 150-token cap, logging how often the cap is hit. Five variants form an ablation: <b>V0</b> "
-    "baseline (top-10 whole documents, free-form answer), <b>V1</b> T1 only, <b>V2</b> T4 only, <b>V3</b> T1 + T4, "
-    "and <b>VO</b> an oracle given only the gold passages, which bounds the possible saving."))
+    "qualifies, the agent answers “not found” <i>without calling the LLM</i>. τ was swept over six values and set to "
+    f"{neg(K['tau'], 0)} (Figure 2b). T4 enforces an answer contract (answer first, at most three sentences, passage "
+    "IDs as citations) with a 150-token cap. Five variants form an ablation: <b>V0</b> baseline (top-10 whole "
+    "documents, free-form answer), <b>V1</b> T1 only, <b>V2</b> T4 only, <b>V3</b> T1 + T4, and <b>VO</b> an oracle "
+    "given only the gold passages (with T4), which bounds the possible saving."))
 s.append(P(
-    "<b>Analysis.</b> Efficiency: input and output tokens, time to first token (TTFT) and end-to-end latency (streamed, "
-    "three runs). Quality: correctness judged by an LLM against reference answers (as in RAGAS [14]), with 20% checked by hand; citation "
-    "precision; abstention accuracy. The headline metric, <b>TCCA</b>, divides total tokens by the number of answers "
-    "that are both correct and correctly cited, so savings bought with wrong answers make it worse. The <b>exchange "
-    "rate</b> is c/b from the regression latency ≈ a + b·N<sub>in</sub> + c·N<sub>out</sub>. A variant is "
-    "acceptable only if correctness drops by at most three points and abstention does not drop, a margin fixed before "
-    "the experiment. Variants are compared per question (McNemar’s test, bootstrap intervals), and each regression is "
-    "labelled as a retrieval miss, over-strict threshold, truncation or wrong citation."))
+    "<b>Analysis.</b> Efficiency: tokens, time to first token (TTFT) and end-to-end latency (three runs, retrieval "
+    "included). Quality: correctness judged by DeepSeek-chat (another model family) against reference answers, as in "
+    "RAGAS [14], with 20% graded blind by hand; citation precision; abstention accuracy. <b>TCCA</b> = tokens per "
+    "correct <i>and</i> correctly cited answer; <b>TPCA</b> ignores citations. The <b>exchange rate</b> = decode time "
+    "per output token ÷ prefill time per input token. A variant is acceptable only if correctness drops by at most three "
+    "points and abstention does not drop, a margin fixed in advance. Tests: McNemar and bootstrap intervals per "
+    "question; regressions labelled by cause; τ optimism by stratified 5-fold cross-validation (20 repeats)."))
 
 # ---------- 4 ----------
 s.append(P("4. Results", h1))
-cols = ["Variant", "Input tokens", "Output tokens", "TTFT (s)", "Latency (s)", "Correct (%)", "Cited (%)", "Abstain (%)", "TCCA"]
+cols = ["Variant", "Input tokens", "Output tokens", "TTFT (s)", "Latency (s)", "Correct (%)", "Cited (%)",
+        "Abstain (%)", "TCCA", "TPCA"]
 t4 = [cols] + [[r["variant"], val(r, "input_tokens"), val(r, "output_tokens"), val(r, "ttft_s", "{:.2f}"),
                 val(r, "latency_s", "{:.2f}"), val(r, "correct_pct"), val(r, "citation_precision_pct"),
-                val(r, "abstention_acc_pct"), val(r, "tcca")] for r in rows]
-s.append(P("<b>Table 2.</b> Results per variant (means over 40 questions). Cited = citation precision; Abstain = "
-           "abstention accuracy; TCCA = tokens per correct cited answer.", capk))
-s.append(T(t4, [3.4 * cm] + [(W - 3.4 * cm) / 8] * 8))
+                val(r, "abstention_acc_pct"), val(r, "tcca"), val(r, "tpca")] for r in rows]
+s.append(P("<b>Table 2.</b> Results per variant over 40 questions (tokens and latency: means over three runs; quality: "
+           "first run). Cited = citation precision; Abstain = abstention accuracy; TCCA = tokens per correct cited "
+           "answer; TPCA = tokens per correct answer.", capk))
+s.append(T(t4, [3.7 * cm] + [(W - 3.7 * cm) / 9] * 9))
 s.append(Spacer(1, 5))
-s.append(KeepTogether([img("fig1_tokens_quality.png", W * 0.92),
-    P("<b>Figure 1.</b> (a) Mean tokens per query: input (grey) and output (black). (b) Share of answers that are "
-      "correct and correctly cited.", cap)]))
-f2 = img("fig2_token_exchange_rate.png", 7.4 * cm)
-side = [P("<b>Figure 2.</b> Added latency per input and per output token, from the regression over all runs.", cap),
-        P(ph("Objective summary of Table 2 and Figures 1 and 2: token reduction of V1, V2 and V3 relative to V0, "
-             "change in correctness, citation precision and abstention, and the measured exchange rate. Then the "
-             "failure taxonomy counts for V3."), S("sb", fontSize=11.5, leading=13.6, alignment=TA_LEFT))]
-lay = Table([[f2, side]], colWidths=[7.8 * cm, W - 7.8 * cm])
-lay.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("LEFTPADDING", (0, 0), (-1, -1), 0),
-                         ("RIGHTPADDING", (0, 0), (0, 0), 8), ("TOPPADDING", (0, 0), (-1, -1), 0)]))
-s.append(lay)
+s.append(KeepTogether([img("fig1_tokens_quality.png", W * 0.64),
+    P("<b>Figure 1.</b> (a) Mean tokens per query: input (grey) and output (black). (b) Correct answers (light bar) "
+      "and answers that are also correctly cited (dark bar).", cap)]))
+s.append(P(
+    f"<b>Tokens and quality.</b> T1 (V1) cut input tokens by {red(v0, v1, 'input_tokens'):.0f}% and latency from "
+    f"{v0['latency_s']:.1f} s to "
+    f"{v1['latency_s']:.1f} s, while correctness changed by {pts(C['V1']['diff_points'])} points ({ci('V1')}): within "
+    f"the margin. T4 (V2) cut output tokens by {red(v0, v2, 'output_tokens'):.0f}% but correctness fell by "
+    f"{neg(-C['V2']['diff_points'])} points ({ci('V2')}). V3 combined both ({red(v0, v3, 'input_tokens'):.0f}% fewer "
+    f"input and {red(v0, v3, 'output_tokens'):.0f}% fewer output tokens, {v3['latency_s']:.1f} s), but its "
+    f"correctness fell by {neg(-C['V3']['diff_points'])} points ({ci('V3')}), missing the margin. Of the "
+    f"{sum(REG3.values())} questions V0 answered correctly and V3 did not, "
+    f"{REG3.get('wrong answer despite evidence', 0)} had the right evidence in context but the short answer omitted a "
+    "required detail. With T1, abstention accuracy rose from "
+    f"{v0['abstention_acc_pct']:.0f}% to {v1['abstention_acc_pct']:.0f}%; in V3, {100 - v3['llm_calls_pct']:.0f}% of "
+    "questions got “not found” without any LLM call. The baseline almost never cited a passage, which inflates its "
+    f"TCCA; ignoring citations, TPCA still fell from {num(v0['tpca'])} to {num(v1['tpca'])} (V1) and "
+    f"{num(v3['tpca'])} (V3)."))
+s.append(KeepTogether([img("fig2_token_exchange_rate.png", W * 0.64),
+    P("<b>Figure 2.</b> (a) Measured latency per input token (prefill) and per output token (decode). (b) Tokens per "
+      "query against correctness for every swept τ (sweep run); the dotted line is the non-inferiority margin.", cap)]))
+s.append(P(
+    f"<b>Latency and hardware.</b> Prefill ran at {HW['prefill_measured_tok_s']:.0f} tokens/s and decode at "
+    f"{HW['decode_measured_tok_s']:.0f} tokens/s, so one output token cost as much latency as "
+    f"{LAT['exchange_rate']:.0f} input tokens (a linear model of LLM time on both token counts fits with "
+    f"R² = {LAT['reg_r2']:.2f}). Decode reached {HW['bandwidth_utilisation_pct']:.0f}% of the memory-bandwidth ceiling "
+    f"of {HW['decode_ceiling_tok_s']:.0f} tokens/s ({HW['bandwidth_gb_s']:.0f} GB/s ÷ {HW['model_gb']:.1f} GB of "
+    "weights), as expected for a bandwidth-bound phase. Long prompts slowed every output token "
+    f"({CTX['long']['ms_per_output_token']:.1f} vs {CTX['short']['ms_per_output_token']:.1f} ms), because each decode "
+    f"step also reads the prompt’s KV cache ({HW['kv_bytes_per_token'] / 1024:.0f} KiB per token)."))
+s.append(P(
+    f"<b>Robustness.</b> Cross-validating τ lowered V3 correctness from {CV['V3']['in_sample_correct_pct']:.0f}% to "
+    f"{CV['V3']['cv_correct_pct']:.0f}% (V1: {CV['V1']['in_sample_correct_pct']:.0f}% to "
+    f"{CV['V1']['cv_correct_pct']:.0f}%), so tuning on the test set is optimistic by up to "
+    f"{max(CV['V3']['optimism_points'], CV['V1']['optimism_points']):.0f} points. The judge agreed with the blind "
+    f"manual grades on {J['agree']} of {J['n']} answers (Cohen’s κ = {J['kappa']:.2f}); both disagreements were "
+    "multi-part answers it accepted despite a missing step."))
 
 # ---------- 5 ----------
 s.append(P("5. Discussion", h1))
-s.append(P(ph("Answer RQ1 to RQ3 using the results. Compare with the literature: did the oracle beat the baseline, "
-              "as [4, 5] predict, and does the exchange rate match the prefill/decode characterisation in [1, 2]? "
-              "Explain any unexpected result with an example from the failure taxonomy, and state what this means "
-              "for designing an operational knowledge hub."), body))
+s.append(P(
+    "<b>RQ1.</b> Input tokens can be cut by an order of magnitude without losing correctness: dropping low-scoring "
+    "passages helped rather than hurt, in line with [4, 5]. Output is harder: the fixed three-sentence contract left out "
+    f"secondary facts, so T4 failed the margin; the oracle, which uses the same contract, scored only "
+    f"{vo['correct_pct']:.0f}%, pointing to the contract, not retrieval, as the limit. With long contexts the 3B model "
+    "also ignored the citation instruction. <b>RQ2.</b> The two token types cost differently, but the ratio depends on "
+    "the hardware: on this laptop GPU prefill is slow, so the baseline prompt dominated latency (first token after "
+    f"{v0['ttft_s']:.1f} of {v0['latency_s']:.1f} s) and T1 saved far more time than T4. Where prefill is much faster "
+    "relative to decode, as on data-centre accelerators [1, 2], output reduction gains weight, so the exchange rate "
+    "should be measured per deployment. <b>RQ3.</b> Yes: abstention accuracy rose from "
+    f"{v0['abstention_acc_pct']:.0f}% to {v1['abstention_acc_pct']:.0f}%. For a knowledge hub this suggests adaptive "
+    "retrieval by default and an output budget that adapts to the question. "
+    f"At {num(SC['queries_per_day'])} queries a day, V3’s measured "
+    f"savings would amount to about {SC['input_tokens_saved_per_day'] / 1e6:,.0f} million input tokens and "
+    f"{SC['machine_hours_saved_per_day']:,.0f} machine-hours per day on this hardware"
+    + (f" and {SC['api_cost_saved_per_day']:,.0f} {K.get('price_currency', 'USD')} at the judge API’s list price"
+       if "api_cost_saved_per_day" in SC else "") + " (a projection from measured means)."))
 
 # ---------- 6 ----------
 s.append(P("6. Conclusion", h1))
-s.append(P(ph("Main findings in two sentences.") + " Beyond the numbers, this study contributes a phase-aware way "
-    "to choose token optimisations, a metric that rewards only savings that keep answers correct and cited, and a "
-    "simple method to measure the relative cost of input and output tokens on any deployment. <b>Limitations:</b> "
-    "40 questions from one domain, one model, API latency that includes network noise, a possibly biased LLM judge, "
-    "and a threshold tuned on the evaluation set. <b>Future work:</b> history compaction with multi-turn data, a "
-    "citation-gated model cascade, cache-aware prompt ordering, and profiling prefill and decode on a locally "
-    "served model."))
-s.append(P("<b>Use of AI tools.</b> " + ph("Which tools you used and for what; that you verified every source, line "
-           "of code and result yourself."), S("ai", fontSize=11, leading=13.2)))
+s.append(P(
+    f"Adaptive retrieval is the clear win: {red(v0, v1, 'input_tokens'):.0f}% fewer input tokens, "
+    f"{v0['latency_s'] / v1['latency_s']:.0f} times lower latency and better abstention at equal correctness. A fixed "
+    "output budget saves decode time but costs completeness. The study also contributes a phase-aware way to choose "
+    "token optimisations and a simple method to measure the exchange rate on any deployment. <b>Limitations:</b> 40 "
+    "questions from one domain; one 3B model on one fanless laptop (cooling breaks between runs); a judge slightly "
+    "lenient on multi-part answers; τ tuned on the test set. <b>Future work:</b> question-adaptive output budgets, "
+    "history compaction, a citation-gated cascade, and the exchange rate on a server GPU."))
+s.append(P("<b>Use of AI tools.</b> " + (AI_USE or ph("Which tools you used and for what; that you verified every "
+           "source, line of code and result yourself.")), S("ai", fontSize=11, leading=13.2)))
+
 
 # ---------- References ----------
 s.append(PageBreak())
@@ -222,4 +288,4 @@ refs = [
 for i, r in enumerate(refs, 1):
     s.append(P(f"[{i}]&nbsp;&nbsp;{r}", ref))
 doc.build(s)
-print("built; placeholder =", placeholder)
+print("built; pages =", doc.page, "(last page = references)")
