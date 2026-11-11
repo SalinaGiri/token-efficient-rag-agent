@@ -30,7 +30,7 @@ BASELINE_K = 10               # V0/V2: number of whole sections ("documents")
 CANDIDATES = 20               # T1: passages retrieved before reranking
 KMAX = 4                      # T1: maximum passages kept
 TAU = 0.0                     # T1: relevance threshold (set after `python run.py sweep`)
-TAU_SWEEP = [-6.0, -4.0, -2.0, 0.0, 2.0, 4.0]   # adjust after `python run.py scores`
+TAU_SWEEP = [-1.5, 0.0, 1.0, 2.0, 2.5, 3.0]   # covers the overlap of answerable and unanswerable top scores
 
 # ---------- Experiment ----------
 REPEATS = 3                   # repeats per question for latency
