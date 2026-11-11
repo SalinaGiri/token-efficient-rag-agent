@@ -246,7 +246,7 @@ s.append(P(
     f"At {num(SC['queries_per_day'])} queries a day, V3’s measured "
     f"savings would amount to about {SC['input_tokens_saved_per_day'] / 1e6:,.0f} million input tokens and "
     f"{SC['machine_hours_saved_per_day']:,.0f} machine-hours per day on this hardware"
-    + (f" and {SC['api_cost_saved_per_day']:,.0f} {K.get('price_currency', 'USD')} at the judge API’s list price"
+    + (f" (about {SC['api_cost_saved_per_day']:,.0f} USD at DeepSeek-Flash peak list prices)"
        if "api_cost_saved_per_day" in SC else "") + " (a projection from measured means)."))
 
 # ---------- 6 ----------
