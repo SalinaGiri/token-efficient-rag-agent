@@ -147,14 +147,13 @@ To judge with a local model instead, set `JUDGE["backend"] = "ollama"` and a mod
 - **Baseline prompts get cut off**: raise `NUM_CTX` in `config.py`.
 - **"Thinking" models** (e.g. Qwen3): set `THINK = False` in `config.py`, otherwise hidden reasoning tokens inflate the output count.
 
-## Cleanup (borrowed Mac)
+## Cleanup
 
 ```
-ollama rm llama3.1:8b
-ollama rm qwen2.5:7b
+ollama rm modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M
 ```
-Then quit Ollama, move it from Applications to the Trash, delete `~/.ollama` and `~/.cache/huggingface`, and
-delete this project folder (push to GitHub first).
+To remove everything: quit Ollama, delete `~/.ollama` and `~/.cache/huggingface`, and delete this project folder
+(the virtual environment lives inside it).
 
 ## Use of AI tools
 
