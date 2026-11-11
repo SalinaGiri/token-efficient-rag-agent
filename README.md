@@ -2,38 +2,57 @@
 
 [![tests](https://github.com/SalinaGiri/token-efficient-rag-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/SalinaGiri/token-efficient-rag-agent/actions/workflows/tests.yml)
 
-A small experiment on **token-efficient retrieval-augmented generation (RAG)** for an operational knowledge
-assistant. A baseline agent is compared with token-optimised variants on 40 questions about the Kubernetes
-troubleshooting documentation. The comparison covers tokens, latency (split into prefill and decode),
-correctness, citations and abstention.
+**Can a documentation chatbot use far fewer tokens and still give correct, cited answers?**
+This project measures exactly that, on a real laptop, with a real local model.
+
+📄 **The 3-page report:** [`report/Fewer_Better_Tokens_3page.pdf`](report/Fewer_Better_Tokens_3page.pdf)
 
 Technical exercise for internship 2026-INT-298 (*Token-Efficient AI-Agent Design for an Operational Knowledge Hub*).
 
-## Idea in one paragraph
+---
 
-LLM inference has two phases: **prefill** processes all input tokens in parallel (compute-bound), and **decode**
-generates output tokens one at a time (memory-bandwidth-bound). So the experiment tests one technique per phase:
+## The short version
 
-- **T1 Adaptive retrieval** (input side): retrieve 20 passages, rerank them with a cross-encoder, and keep only
-  passages scoring at least `TAU` (maximum 4). If none qualifies, the agent answers "not found" **without calling the LLM**.
-- **T4 Output budgeting** (output side): an answer contract (answer first, at most 3 sentences, citations) and a
-  150-token cap.
+A chatbot answers 40 questions about the Kubernetes troubleshooting documentation. It looks up relevant text
+first (retrieval) and then lets a language model write the answer (this is called **RAG**,
+retrieval-augmented generation). I compared a normal version with versions that try to save tokens, and checked
+whether the answers stayed correct.
 
-| Variant | Retrieval | Output |
+**Main finding:** sending the model only the few passages that really match the question cut input tokens by
+about 90% and made answers about 6 times faster (26 s to 4 s), with no loss of correctness. Forcing short
+answers saved tokens too, but the answers lost important details, so that idea did not pass.
+
+## Why two techniques?
+
+A language model works in two phases, and each costs time in a different way:
+
+| Phase | What happens | What it costs |
 |---|---|---|
-| V0 Baseline | top-10 whole sections | free-form |
-| V1 | T1 adaptive passages | free-form |
-| V2 | top-10 whole sections | T4 budget |
-| V3 Optimised | T1 adaptive passages | T4 budget |
-| VO Oracle | gold passages only | T4 budget |
+| **Prefill** (reading) | The model reads the whole prompt at once | Cheap per token, but prompts can be long |
+| **Decode** (writing) | The model writes the answer one token at a time | Expensive per token |
 
-Headline metric: **TCCA, tokens per correct cited answer** = total tokens ÷ answers that are correct *and* cite a
-passage from the right section (for unanswerable questions: a correct "not found").
+So I tested one technique for each phase:
+
+- **T1, adaptive retrieval (less to read).** Find 20 candidate passages, score them with a second, more precise
+  model (a *reranker*), and keep only the ones scoring at least `TAU` (at most 4). If nothing scores high
+  enough, the bot says "not found" **without calling the model at all**.
+- **T4, output budget (less to write).** Ask for the answer first, in at most 3 sentences, with citations,
+  and stop after 150 tokens.
+
+## The five versions compared
+
+| Version | What it reads | How it answers |
+|---|---|---|
+| **V0** Baseline | the 10 best-matching sections, in full | free length |
+| **V1** | T1: only the best passages | free length |
+| **V2** | the 10 best-matching sections, in full | T4: short |
+| **V3** Optimised | T1: only the best passages | T4: short |
+| **VO** Oracle | only the correct passages (a "perfect retrieval" upper bound) | T4: short |
 
 ## Results
 
-Main run: 40 questions, 5 variants, 3 repeats, Qwen2.5-3B-Instruct on an Apple M4 MacBook Air. The 3-page report is
-[`report/Fewer_Better_Tokens_3page.pdf`](report/Fewer_Better_Tokens_3page.pdf).
+Main run: 40 questions × 5 versions × 3 repeats = 600 answers, plus 520 runs to choose `TAU`.
+Model: Qwen2.5-3B-Instruct, run locally with Ollama on an Apple M4 MacBook Air.
 
 <!-- results:start -->
 | Variant | Input tokens | Output tokens | Latency (s) | Correct (%) | Abstain (%) | TPCA | vs V0 (points, p) |
@@ -50,134 +69,110 @@ Main run: 40 questions, 5 variants, 3 repeats, Qwen2.5-3B-Instruct on an Apple M
 - ✓ = passes the non-inferiority rule (at most 3 points less correct, no drop in abstention). Full results: `results/stats.md`; report: `report/Fewer_Better_Tokens_3page.pdf`.
 <!-- results:end -->
 
-**In short:** adaptive retrieval (T1) removes about nine in ten input tokens and most of the latency with no loss of
-correctness, and makes the agent say "not found" correctly. A fixed three-sentence output budget (T4) saves output
-tokens but drops secondary facts, so it fails the non-inferiority rule.
+**How to read the table**
 
-## Quick start
+- **Input / output tokens:** average tokens per question that the model read and wrote.
+- **Latency:** average seconds from question to finished answer (retrieval time included).
+- **Correct:** share of answers graded correct.
+- **Abstain:** for the 7 questions the documentation cannot answer, how often the bot correctly said "not found".
+- **TPCA:** tokens per correct answer, lower is better. It shows how much you pay for one useful answer.
+- **vs V0:** change in correctness compared with the baseline, and the p-value of a McNemar test (a test for
+  paired yes/no results). p below 0.05 means the difference is unlikely to be chance.
+- **✓:** passes the rule I fixed *before* running: at most 3 points less correct and no worse at saying "not found".
 
-```
-python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
-python -m tests.test_pipeline     # offline check with fake models, no downloads needed
-python run.py --help              # the full experiment, step by step (see below)
-```
+## How I checked the results can be trusted
 
-## Beyond the averages
+All of these run from the saved measurements, without extra model calls (`python run.py analyze`):
 
-Four extra analyses make the comparison harder to fool; all run from `python run.py analyze` on the recorded runs,
-without extra LLM calls.
+- **Is the grader reliable?** An AI judge (DeepSeek, a different model family) graded every answer. I graded
+  33 answers myself without seeing its verdict. We agreed on 31 of 33 (Cohen's kappa 0.84, where 1 is perfect
+  agreement and 0 is chance).
+- **Did I tune on the test questions?** `TAU` was picked on the same 40 questions. Cross-validation (choosing
+  `TAU` on some questions and testing on the others, 100 times) shows how much this flatters the result.
+- **Do the speeds make physical sense?** Writing each token needs the whole model read from memory once, so the
+  M4's memory speed sets a maximum. The measured speed reached 65% of it.
+- **What would it mean at scale?** The measured savings per question, projected to 100,000 questions a day.
 
-- **Tuning bias (cross-validated TAU).** `TAU` is chosen on the same 40 questions it is tested on, which flatters
-  V1/V3. Stratified 5-fold cross-validation, repeated 20 times, scores every question at a `TAU` chosen *without*
-  it, and reports the gap to the in-sample result.
-- **Judge reliability (Cohen's kappa).** The LLM judge is compared with a manual check of 20% of the answers.
-  Kappa corrects raw agreement for the agreement expected by chance.
-- **Hardware limits.** Every output token must read all model weights once, so decode speed is capped at
-  memory bandwidth ÷ model size. The measured decode speed is compared with that ceiling, and decode speed is
-  split by prompt length, because each output token also reads the KV cache of the whole prompt. Model size and
-  KV-cache bytes per token are read from Ollama, not assumed.
-- **Scale projection.** Measured per-query savings of V3 over V0, translated to tokens and machine-hours per day
-  at a chosen volume (API cost only if real prices are filled in `config.py`).
-
-The threshold trade-off (tokens vs correctness for every swept `TAU`) is plotted next to the latency exchange rate
-in Figure 2.
-
-## Project structure
+## What is in this repository
 
 ```
-config.py              all settings (model names, thresholds, repeats)
-run.py                 one entry point for every step
-data/questions.csv     40 test questions (25 single, 8 multi, 7 unanswerable)
-data/gold.csv          gold passages per question (created by `run.py gold`, then checked by hand)
-data/raw/              frozen, dated copy of the documentation
-src/corpus.py          download + split into sections and ~250-token passages
-src/retrieval.py       embeddings (MiniLM), reranker (cross-encoder), baseline and adaptive retrieval
-src/llm.py             Ollama client (measures prefill and decode separately) + OpenAI-compatible judge client
-src/prompts.py         free-form and budgeted prompts, judge prompt
-src/agent.py           the five variants and the experiment loop (resumable)
-src/judge.py           grading + 20% sample for manual checking
-src/analyze.py         metrics, latency model, McNemar test, bootstrap CI, failure taxonomy,
-                       cross-validated TAU, Cohen's kappa, hardware limits, scale projection
-report/                figure and PDF builders (filled automatically by `run.py analyze`)
-tests/test_pipeline.py offline test with fake models (also runs on GitHub Actions)
+report/                 the 3-page report (PDF), its figures and the scripts that build them
+results/                every measurement: all runs, judge verdicts, my manual grades, statistics
+data/questions.csv      the 40 test questions (25 single-fact, 8 two-part, 7 not answerable)
+data/gold.csv           the correct passages for each question, checked by hand
+data/raw/               a dated copy of the documentation, so results can be reproduced
+src/                    the chatbot and the evaluation code (see below)
+config.py               all settings in one place (model, TAU, repeats, ...)
+run.py                  one command for every step
+tests/                  an offline test with fake models (also runs automatically on GitHub)
 ```
 
-## Setup (macOS, Apple Silicon)
+Inside `src/`: `corpus.py` downloads and splits the documentation, `retrieval.py` finds and reranks passages,
+`llm.py` talks to Ollama and measures reading and writing time separately, `prompts.py` holds the prompts,
+`agent.py` runs the five versions, `judge.py` grades answers, `analyze.py` computes all statistics.
 
-1. Install **Ollama** from ollama.com and **Python 3.11+** from python.org.
-2. Pull the model under test. This study used Qwen2.5-3B-Instruct (Q4_K_M), pulled from ModelScope because
-   the Ollama registry was unreachable from the test network:
-   ```
-   ollama pull modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M
-   ```
-   Put the exact name in `config.py` (`LLM_MODEL`). The judge is DeepSeek (`deepseek-chat`) through its
-   OpenAI-compatible API, a different model family from the model under test.
-3. Create a virtual environment **inside the project folder** (deleting the folder later removes everything):
-   ```
-   cd token-efficient-rag-agent
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   python -m tests.test_pipeline        # should end with ALL TESTS PASSED
-   ```
+## Run it yourself (macOS, Apple Silicon)
 
-## Running the experiment
+**1. Install** [Ollama](https://ollama.com) and Python 3.11 or newer, then get the model:
+```
+ollama pull modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M
+```
+(I pulled it from ModelScope because the Ollama registry was unreachable from my network.)
 
-Keep the Mac plugged in and close other heavy apps while measuring.
+**2. Set up Python** inside the project folder:
+```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m tests.test_pipeline        # should end with ALL TESTS PASSED
+```
 
-| Step | Command | What to do afterwards |
+**3. Run the steps in order.** Keep the Mac plugged in and close heavy apps while measuring.
+
+| Step | Command | What it does |
 |---|---|---|
-| 1 | `python run.py fetch` | Downloads the docs once and splits them. Check the counts it prints. |
-| 2 | `python run.py gold` | **Open `data/gold.csv` and check every row**, especially rows marked CHECK. Edit passage IDs if needed. |
-| 3 | `python run.py scores` | Look at the score ranges and adjust `TAU_SWEEP` in `config.py` if needed. |
-| 4 | `python run.py sweep` | Tries every threshold once and suggests a `TAU`. Set `TAU` in `config.py`. |
-| 5 | `python run.py run` | Main experiment: 5 variants × 40 questions × 3 repeats. Resumable if interrupted. |
-| 6 | `python run.py judge` | Grades answers. **Fill the `human_verdict` column in `results/manual_check.csv`.** |
-| 7 | `python run.py analyze` | Prints all results; writes `results/` files and `report/results.csv`. Check `results/regressions.csv`. |
-| 8 | `python run.py report` | Rebuilds the figures and both PDFs in `report/`. |
+| 1 | `python run.py fetch` | Downloads the documentation and splits it into passages |
+| 2 | `python run.py gold` | Suggests the correct passage per question; **check `data/gold.csv` by hand** |
+| 3 | `python run.py scores` | Shows reranker score ranges, to choose sensible `TAU` values |
+| 4 | `python run.py sweep` | Tries each `TAU`; put the chosen one in `config.py` |
+| 5 | `python run.py run` | The main experiment (600 answers). Can be stopped and resumed |
+| 6 | `python run.py judge` | Grades the answers; then **fill `human_verdict` in `results/manual_check.csv`** |
+| 7 | `python run.py analyze` | Computes all results and statistics |
+| 8 | `python run.py report` | Rebuilds the figures, the PDF and the results table in this README |
 
-The judge key is read from the `JUDGE_API_KEY` environment variable and never stored in the project. Type it
-in only for the session that needs it, so it stays out of files and shell history:
+**The judge's API key** is never saved in the project. Type it in only for the session that needs it:
 ```
-read -rs "JUDGE_API_KEY?API key: "; export JUDGE_API_KEY; echo     # zsh; in bash: read -rsp "API key: " JUDGE_API_KEY
+read -rs "JUDGE_API_KEY?API key: "; export JUDGE_API_KEY; echo
 ```
-To judge with a local model instead, set `JUDGE["backend"] = "ollama"` and a model of a different family.
+(That is zsh, the macOS default. In bash: `read -rsp "API key: " JUDGE_API_KEY; export JUDGE_API_KEY`.)
+To grade with a local model instead, set `JUDGE["backend"] = "ollama"` in `config.py`.
 
-## Outputs
+## Design choices worth knowing
 
-- `results/runs.jsonl`: every single run (tokens, TTFT, prefill/decode time, answer, citations)
-- `results/summary.csv`: one row per variant
-- `results/stats.md`: latency per input/output token, exchange rate, regression, McNemar tests, non-inferiority
-  verdicts, judge agreement and kappa, cross-validated TAU, hardware limits, scale projection
-- `results/sweep_summary.csv` and `report/tradeoff.csv`: the threshold trade-off
-- `results/hardware.csv`, `results/model_facts.json`: decode ceiling vs measured speed; model size and KV-cache size
-- `results/regressions.csv`: answers that got worse than the baseline, with an automatic first label
-- `report/*.pdf`: the 3-page submission and the long research-paper version
-
-## Design notes
-
-- **"Document" = one section** of a documentation page (an h2 heading). The baseline retrieves the best-matching
-  passages and sends their whole parent sections, as a naive RAG system would.
-- **No prompt caching**: a unique request ID at the start of every prompt stops Ollama from reusing a cached
-  prefix, so each request measures a full prefill. Prompt caching is discussed but deliberately out of scope.
-- Both prompt styles ask for citations and allow "not found", so V0 vs V2 isolates **answer length** only.
-- Latency is end-to-end per question, **including retrieval time**, so T1's reranking cost is not hidden.
-- Temperature 0 and a fixed seed; answers are graded once (repeat 1), timings are averaged over all repeats.
+- **Fair baseline.** V0 sends whole documentation sections, as a simple RAG system would.
+- **No prompt caching.** Every prompt starts with a unique ID, so Ollama cannot reuse earlier work and each
+  timing is a full, honest measurement.
+- **One change at a time.** Both prompt styles ask for citations and allow "not found", so V0 vs V2 only
+  changes the answer length.
+- **Honest latency.** Retrieval and reranking time are included, so T1's own cost is not hidden.
+- **Repeatable.** Temperature 0 and a fixed seed. Answers are graded once; timings are averaged over 3 repeats.
+- **Cool laptop.** The MacBook Air has no fan, so the run pauses 2 minutes every 50 answers (never during a
+  timed answer).
 
 ## Troubleshooting
 
-- **Hugging Face downloads fail or are very slow** (e.g. from mainland China): `export HF_ENDPOINT=https://hf-mirror.com` before running.
-- **`Connection refused` on port 11434**: start the Ollama app.
-- **Baseline prompts get cut off**: raise `NUM_CTX` in `config.py`.
-- **"Thinking" models** (e.g. Qwen3): set `THINK = False` in `config.py`, otherwise hidden reasoning tokens inflate the output count.
+- **Hugging Face downloads fail or are slow:** run `export HF_ENDPOINT=https://hf-mirror.com` first.
+- **`Connection refused` on port 11434:** start the Ollama app.
+- **Long prompts get cut off:** raise `NUM_CTX` in `config.py`.
+- **"Thinking" models (e.g. Qwen3):** set `THINK = False` in `config.py`, or hidden reasoning inflates the token counts.
 
 ## Cleanup
 
 ```
 ollama rm modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M
 ```
-To remove everything: quit Ollama, delete `~/.ollama` and `~/.cache/huggingface`, and delete this project folder
-(the virtual environment lives inside it).
+To remove everything: quit Ollama, delete `~/.ollama` and `~/.cache/huggingface`, and delete this folder
+(the Python environment lives inside it).
 
 ## Use of AI tools
 
