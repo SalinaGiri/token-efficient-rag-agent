@@ -121,7 +121,10 @@ def failure_taxonomy(scored, gold_passages, gold_sections, passages_by_id):
         if not b or not b["correct"] or r["correct"]:
             continue
         if r["abstained"]:
-            label = "threshold too strict (false abstention)" if not r["unanswerable"] else "other"
+            # no LLM call means the T1 threshold rejected every passage; otherwise the model itself said "not found"
+            label = ("other" if r["unanswerable"] else
+                     "threshold too strict (false abstention)" if not r["llm_called"] else
+                     "model abstained despite context")
         elif r["truncated"]:
             label = "truncated answer"
         else:
