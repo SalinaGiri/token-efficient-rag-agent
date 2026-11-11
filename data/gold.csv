@@ -1,0 +1,129 @@
+qid,type,gold_passages,gold_sections,method,preview
+q01,single,P0082,D037,reviewed (ok),"P0082: Debug Running Pods > Examining pod logs :: First, look at the logs of the affected container:
+```
+kubectl logs ${POD_NAME} -c ${CONTAINER_NAME}
+```
+If your container has previously cr"
+q02,single,P0004,D003,reviewed (ok),"P0004: Debug Pods > Diagnosing the problem > My pod stays pending :: #### My pod stays pending
+If a Pod is stuck in Pending it means that it can not be scheduled onto a node.
+Generally this is because there ar"
+q03,single,P0005,D003,reviewed (ok),"P0005: Debug Pods > Diagnosing the problem > My pod stays waiting :: #### My pod stays waiting
+If a Pod is stuck in the Waiting state, then it has been scheduled to a worker node,
+but it can't run on that mach"
+q04,single,P0008,D003,reviewed (ok),"P0008: Debug Pods > Diagnosing the problem > My pod is running but not doing what I told it to do :: The first thing to do is to delete your pod and try creating it again with the --validate option.
+For example, run kubectl apply --validate "
+q05,single,P0011,D003,reviewed (ok),"P0011: Debug Pods > Diagnosing the problem > Debugging Services :: Make sure that the endpoints in the EndpointSlices match up with the number of pods that you expect to be members of your service.
+For examp"
+q06,single,P0055,D025,reviewed (ok),"P0055: Determine the Reason for Pod Failure > Customizing the termination message :: Kubernetes retrieves termination messages from the termination message file
+specified in the terminationMessagePath field of a Container, wh"
+q07,single,P0055,D025,reviewed (ok),"P0055: Determine the Reason for Pod Failure > Customizing the termination message :: Kubernetes retrieves termination messages from the termination message file
+specified in the terminationMessagePath field of a Container, wh"
+q08,single,P0056,D025,reviewed (ok),"P0056: Determine the Reason for Pod Failure > Customizing the termination message :: In the following example, the container writes termination messages to
+ /tmp/my-log for Kubernetes to retrieve:
+```
+apiVersion: v1
+kind: Pod"
+q09,single,P0060;P0064,D029;D032,reviewed (ok),"P0060: Debug Init Containers > Checking the status of Init Containers :: Display the status of your pod:
+```
+kubectl get pod <pod-name>
+```
+For example, a status of Init:1/2 indicates that one of two Init Containe || P0064: Debug Init Containers > Understanding Pod status :: A Pod status beginning with Init: summarizes the status of Init Container
+execution. The table below describes some example status values th"
+q10,single,P0064,D032,reviewed (ok),"P0064: Debug Init Containers > Understanding Pod status :: A Pod status beginning with Init: summarizes the status of Init Container
+execution. The table below describes some example status values th"
+q11,single,P0095,D041,reviewed (ok),"P0095: Debug Running Pods > Debugging via a shell on the node :: If none of these approaches work, you can find the Node on which the Pod is
+running and create a Pod running on the Node. To create
+an inter"
+q12,single,P0084;P0088,D039,reviewed (corrected),"P0084: Debug Running Pods > Debugging with an ephemeral debug container :: Ephemeral containers 
+are useful for interactive troubleshooting when kubectl exec is insufficient
+because a container has crashed or a cont || P0088: Debug Running Pods > Debugging with an ephemeral debug container > Example debugging using ephemeral containers :: ```
+kubectl debug -it ephemeral-demo --image=busybox:1.28 --target=ephemeral-demo
+```
+```
+Defaulting debug container name to debugger-8xzrl."
+q13,single,P0088,D039,reviewed (ok),"P0088: Debug Running Pods > Debugging with an ephemeral debug container > Example debugging using ephemeral containers :: ```
+kubectl debug -it ephemeral-demo --image=busybox:1.28 --target=ephemeral-demo
+```
+```
+Defaulting debug container name to debugger-8xzrl."
+q14,single,P0098,D042,reviewed (ok),"P0098: Debug Running Pods > Debugging a Pod or Node while applying a profile :: When using kubectl debug to debug a node via a debugging Pod, a Pod via an ephemeral container,
+or a copied Pod, you can apply a profile to "
+q15,single,P0098,D042,reviewed (corrected),"P0098: Debug Running Pods > Debugging a Pod or Node while applying a profile :: When using kubectl debug to debug a node via a debugging Pod, a Pod via an ephemeral container,
+or a copied Pod, you can apply a profile to "
+q16,single,P0094,D040,reviewed (ok),"P0094: Debug Running Pods > Debugging using a copy of the Pod > Copying a Pod while changing container images :: ### Copying a Pod while changing container images
+In some situations you may want to change a misbehaving Pod from its normal
+production con"
+q17,single,P0109,D048,reviewed (ok),"P0109: Get a Shell to a Running Container > Opening a shell when a Pod has more than one container :: If a Pod has more than one container, use --container or -c to
+specify a container in the kubectl exec command. For example,
+suppose you hav"
+q18,single,P0113,D051,reviewed (ok),"P0113: Troubleshooting Clusters > Listing your cluster > Example: debugging a down/unreachable node :: Sometimes when debugging it can be useful to look at the status of a node -- for example, because
+you've noticed strange behavior of a Pod t"
+q19,single,P0122,D052,reviewed (ok),"P0122: Troubleshooting Clusters > Looking at logs :: For now, digging deeper into the cluster requires logging into the relevant machines. Here are the locations
+of the relevant log files. On s"
+q20,single,P0133,D058,reviewed (ok),"P0133: Troubleshooting kubectl > Check kubeconfig :: The kubectl requires a kubeconfig file to connect to a Kubernetes cluster. The
+ kubeconfig file is usually located under the ~/.kube/config "
+q21,single,P0136,D061,reviewed (ok),"P0136: Troubleshooting kubectl > Verify contexts :: Kubernetes supports multiple clusters and contexts .
+Ensure that you are using the correct context to interact with your cluster.
+List avail"
+q22,single,P0149,D068,reviewed (ok),"P0149: Resource metrics pipeline > Metrics Server :: The metrics-server fetches resource metrics from the kubelets and exposes them in the Kubernetes
+API server through the Metrics API for use "
+q23,single,P0147;P0148,D067,reviewed (corrected),"P0147: Resource metrics pipeline > Measuring resource usage > CPU :: ### CPU
+CPU is reported as the average core usage measured in cpu units. One cpu, in Kubernetes, is
+equivalent to 1 vCPU/Core for cloud prov || P0148: Resource metrics pipeline > Measuring resource usage > Memory :: The Kubernetes model for a container's working set expects that the container runtime counts
+anonymous memory associated with the container "
+q24,single,P0169,D080,reviewed (ok),"P0169: Monitor Node Health > Exporter :: An exporter reports the node problems and/or metrics to certain backends.
+The following exporters are supported:
+- Kubernetes exporter : thi"
+q25,single,P0179,D086,reviewed (corrected),"P0179: Debugging Kubernetes nodes with crictl > Example crictl commands > List images :: ```
+sha256:8c811b4aec35f259572d0f79207bc0678df4c736eeec50bc9fec37ed936a472a
+sha256:e179bbfe5d238de6069f3b03fccbecc3fb4f2019af741bfff1233c4d7"
+q26,multi,P0011;P0031,D003;D013,reviewed (corrected),"P0011: Debug Pods > Diagnosing the problem > Debugging Services :: Make sure that the endpoints in the EndpointSlices match up with the number of pods that you expect to be members of your service.
+For examp || P0031: Debug Services > Does the Service have any EndpointSlices? :: Inside the Kubernetes system is a control loop which evaluates the selector of
+every Service and saves the results into one or more Endpoint"
+q27,multi,P0113;P0116,D051,reviewed (corrected),"P0113: Troubleshooting Clusters > Listing your cluster > Example: debugging a down/unreachable node :: Sometimes when debugging it can be useful to look at the status of a node -- for example, because
+you've noticed strange behavior of a Pod t || P0116: Troubleshooting Clusters > Listing your cluster > Example: debugging a down/unreachable node ::   NetworkUnavailable   False     Thu, 17 Feb 2022 17:09:13 -0500   Thu, 17 Feb 2022 17:09:13 -0500   WeaveIsUp           Weave pod has set t"
+q28,multi,P0213;P0214,D102,reviewed (corrected),"P0213: Debugging Kubernetes Nodes With Kubectl > Debugging a Node using kubectl debug node :: Use the kubectl debug node command to deploy a Pod to a Node that you want to troubleshoot.
+This command is helpful in scenarios where you c || P0214: Debugging Kubernetes Nodes With Kubectl > Debugging a Node using kubectl debug node > Note: :: #### Note:
+The debugging Pod can access the root filesystem of the Node, mounted at /host in the Pod.
+If you run your kubelet in a filesyste"
+q29,multi,P0082;P0092,D037;D040,reviewed (ok),"P0082: Debug Running Pods > Examining pod logs :: First, look at the logs of the affected container:
+```
+kubectl logs ${POD_NAME} -c ${CONTAINER_NAME}
+```
+If your container has previously cr || P0092: Debug Running Pods > Debugging using a copy of the Pod > Copying a Pod while changing its command :: ### Copying a Pod while changing its command
+Sometimes it's useful to change the command for a container, for example to
+add a debugging fla"
+q30,multi,P0076;P0004,D003;D036,reviewed (ok),"P0076: Debug Running Pods > Example: debugging Pending Pods ::   fit failure on node (kubernetes-node-wul5): Node didn't have enough resource: CPU, requested: 1000, used: 1100, capacity: 2000
+```
+Here yo || P0004: Debug Pods > Diagnosing the problem > My pod stays pending :: #### My pod stays pending
+If a Pod is stuck in Pending it means that it can not be scheduled onto a node.
+Generally this is because there ar"
+q31,multi,P0146;P0149,D066;D068,reviewed (corrected),"P0146: Resource metrics pipeline > Metrics API :: The Metrics API is defined in the k8s.io/metrics 
+repository. You must enable the API aggregation layer 
+and register an APIService 
+for the || P0149: Resource metrics pipeline > Metrics Server :: The metrics-server fetches resource metrics from the kubelets and exposes them in the Kubernetes
+API server through the Metrics API for use "
+q32,multi,P0096;P0097,D041,reviewed (corrected),"P0096: Debug Running Pods > Debugging via a shell on the node :: ```
+kubectl delete pod node-debugger-mynode-pdx84
+```
+### Capturing and analyzing Node/Pod traffic
+When debugging networking issues, capturi || P0097: Debug Running Pods > Debugging via a shell on the node > Note: :: #### Note:
+Don't forget to clean up the debugging Pod when you're finished with it:
+```
+kubectl delete pod node-debugger-mynode-pdx84
+```
+Yo"
+q33,multi,P0024;P0025,D010,reviewed (corrected),"P0024: Debug Services > Does the Service work by DNS name? > Note: :: ```
+nameserver 10.0.0.10
+search default.svc.cluster.local svc.cluster.local cluster.local example.com
+options ndots:5
+```
+The nameserver lin || P0025: Debug Services > Does the Service work by DNS name? > Note: :: The options line must set ndots high enough that your DNS client library
+considers search paths at all. Kubernetes sets this to 5 by default"
+q34,unanswerable,,,none (unanswerable),
+q35,unanswerable,,,none (unanswerable),
+q36,unanswerable,,,none (unanswerable),
+q37,unanswerable,,,none (unanswerable),
+q38,unanswerable,,,none (unanswerable),
+q39,unanswerable,,,none (unanswerable),
+q40,unanswerable,,,none (unanswerable),
