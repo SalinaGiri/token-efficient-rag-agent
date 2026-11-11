@@ -64,11 +64,13 @@ a.xaxis.grid(True, color=GRID, linewidth=0.6); a.set_axisbelow(True)
 a.legend(loc="lower right", frameon=False, fontsize=8.5)
 clean(a)
 
-b.barh(y, cor, color=LIGHT, height=0.58, edgecolor=DARK, linewidth=0.6)
-for i, v in enumerate(cor):
-    b.text(v + 1.5, i, f"{v:.0f}%", va="center", fontsize=9, color="#333333")
-b.set_xlim(0, 112); b.set_xticks([0, 25, 50, 75, 100])
-b.set_xlabel("Correct and correctly cited answers (%)")
+correct = [float(r["correct_pct"]) for r in rows][::-1]
+b.barh(y, correct, color=LIGHT, height=0.58, edgecolor=DARK, linewidth=0.6, label="Correct")
+b.barh(y, cor, color=DARK, height=0.28, label="Correct and correctly cited")
+for i, (c, g) in enumerate(zip(correct, cor)):
+    b.text(c + 1.5, i, f"{c:.0f}% / {g:.0f}%", va="center", fontsize=8.5, color="#333333")
+b.set_xlim(0, 125); b.set_xticks([0, 25, 50, 75, 100])
+b.set_xlabel("Answers (%)")
 b.set_title("(b) Answer quality", loc="left", fontweight="bold")
 b.xaxis.grid(True, color=GRID, linewidth=0.6); b.set_axisbelow(True)
 clean(b)
@@ -83,7 +85,7 @@ def exchange_panel(ax, title_prefix=""):
     bars = ax.bar(["One input token\n(prefill)", "One output token\n(decode)"], [ci, co],
                   color=[MID, DARK], width=0.5, edgecolor="white")
     for r, v in zip(bars, [ci, co]):
-        ax.text(r.get_x() + r.get_width() / 2, v + co * 0.03, f"{v:g} ms", ha="center", fontsize=9.5)
+        ax.text(r.get_x() + r.get_width() / 2, v + co * 0.03, (f"{v:.2f} ms" if v < 10 else f"{v:.1f} ms"), ha="center", fontsize=9.5)
     ax.set_ylabel("Added latency (ms per token)")
     ax.set_ylim(0, co * 1.25)
     ax.yaxis.grid(True, color=GRID, linewidth=0.6); ax.set_axisbelow(True)
