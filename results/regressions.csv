@@ -1,0 +1,38 @@
+variant,qid,auto_label,your_label,answer
+V1,q04,model abstained despite context,,I cannot find this in the documentation.
+V2,q04,wrong answer despite evidence,,"To detect that you misspelled a field in your Pod YAML and Kubernetes silently ignored it, you can use the `kubectl logs` command with the `--previous` flag to access the previous container's crash log. Run: `kubectl logs ${POD_NAME} -c ${CONTAINER_NAME} --previous` [P0034]."
+V2,q07,wrong answer despite evidence,,The termination message can be up to 4096 bytes long. [P025]
+V3,q07,wrong answer despite evidence,,The termination message can be up to 4096 bytes long. [P0055]
+V3,q12,wrong answer despite evidence,,"You can use kubectl debug to add an ephemeral container to your Pod, which will allow you to attach a shell for debugging purposes. First, create a pod for the example: `kubectl run ephemeral-demo --image=registry.k8s.io/pause:3.1 --restart=Never`. Then, use kubectl debug to attach to the ephemeral "
+V2,q18,model abstained despite context,,I cannot find this in the documentation.
+V3,q20,wrong answer despite evidence,,"Run `kubectl config get-contexts` to list all contexts and their associated kubeconfig files. To point kubectl to another kubeconfig file, use `kubectl config use-context [context-name]` or set the `KUBECONFIG` environment variable to the path of the desired kubeconfig file. [P0133]"
+V3,q25,wrong answer despite evidence,,Run `crictl ps` [P0181].
+V2,q28,wrong answer despite evidence,,"Run the following command to access the kubelet logs on the node:
+```
+kubectl debug node/mynode -it --image=ubuntu
+```
+Once inside the debug container, you can access the kubelet logs using:
+```
+ps auxw | grep kubelet
+```
+And then access the kubelet log file, which is typically located at:
+```
+/var/"
+V2,q29,wrong answer despite evidence,,"To see why your Pod is crashing in a CrashLoopBackOff state, you can use `kubectl describe pod <pod-name>` to view detailed logs and status information, including the reason for the crash. To get a shell in a copy of the Pod to investigate, you can use `kubectl debug <pod-name> -it --container=<cont"
+V3,q29,wrong answer despite evidence,,"To see why the container crashed, use `kubectl describe pod <pod-name>` to view detailed information about the container's execution. To get a shell in a copy of the Pod to investigate, use `kubectl debug <pod-name> -it --copy-to=<pod-name>-debug --container=<container-name> -- sh` [P0092]."
+V1,q30,model abstained despite context,,I cannot find this in the documentation.
+V1,q31,threshold too strict (false abstention),,I cannot find this in the documentation.
+V2,q31,retrieval miss,,"kubectl top gets its numbers from the Metrics API, which requires the Metrics API to be deployed in your cluster. To enable kubectl top, you need an API extension server that provides the Metrics API. The Metrics API supports access to CPU and memory used for workload autoscaling."
+V3,q31,threshold too strict (false abstention),,I cannot find this in the documentation.
+V3,q33,wrong answer despite evidence,,"From within a Pod, first check the cluster DNS by running `nslookup hostnames.default.svc.cluster.local 10.0.0.10`. If this fails, refer to the kube-proxy section or start over debugging DNS. Check your `/etc/resolv.conf` file to ensure it includes the correct nameserver and search lines, with `name"
+V2,q36,truncated answer,,"Increase the size of an existing PersistentVolumeClaim by modifying the claim's storage size in the YAML definition and then updating the claim. Use the following steps:
+
+1. Edit the PersistentVolumeClaim (PVC) YAML file to increase the storage size. For example, to increase the storage size to 10Gi"
+V2,q38,truncated answer,,"To install and open the Kubernetes Dashboard, follow these steps:
+
+1. Install the Kubernetes Dashboard using the following command:
+   ```
+   kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.2.0/aio/deploy/recommended.yaml
+   ```
+
+2. To access the Dashboard, use the followi"

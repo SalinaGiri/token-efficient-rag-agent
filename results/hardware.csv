@@ -1,0 +1,2 @@
+model_gb,bandwidth_gb_s,decode_ceiling_tok_s,decode_measured_tok_s,bandwidth_utilisation_pct,prefill_measured_tok_s,kv_bytes_per_token,kv_cache_gb_long_prompt,decode_ceiling_long_prompt_tok_s
+2.105,120,57.009,37.034,64.962,297.45,36864,0.24,51.165
