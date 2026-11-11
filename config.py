@@ -34,6 +34,7 @@ TAU_SWEEP = [-1.5, 0.0, 1.0, 2.0, 2.5, 3.0]   # covers the overlap of answerable
 
 # ---------- Experiment ----------
 REPEATS = 3                   # repeats per question for latency
+COOLDOWN_EVERY, COOLDOWN_S = 50, 120   # pause between runs (fanless laptop); 0 disables
 ABSTAIN_TEXT = "I cannot find this in the documentation."
 NONINFERIORITY_POINTS = 3.0   # max allowed drop in correctness (percentage points)
 

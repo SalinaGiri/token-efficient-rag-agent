@@ -91,6 +91,11 @@ def run_loop(experiment, variants, taus, questions, retriever, llm, gold_passage
             if n % 10 == 0 or n == len(jobs):
                 log(f"  {n}/{len(jobs)}  last: {vk} {q['id']} in={rec['prompt_tokens']} out={rec['output_tokens']} "
                     f"{rec['latency_ms']:.0f} ms")
+            every, pause = getattr(cfg, "COOLDOWN_EVERY", 0), getattr(cfg, "COOLDOWN_S", 0)
+            if every and pause and n % every == 0 and n < len(jobs):
+                # Cooling break BETWEEN runs (fanless laptop): no run is timed while paused.
+                log(f"  cooling break: {pause} s")
+                time.sleep(pause)
 
 
 def warm_up(llm, log=print):
