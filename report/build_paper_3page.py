@@ -216,8 +216,7 @@ s.append(KeepTogether([img("fig2_token_exchange_rate.png", W * 0.64),
 s.append(P(
     f"<b>Latency and hardware.</b> Prefill ran at {HW['prefill_measured_tok_s']:.0f} tokens/s and decode at "
     f"{HW['decode_measured_tok_s']:.0f} tokens/s, so one output token cost as much latency as "
-    f"{LAT['exchange_rate']:.0f} input tokens (a linear model of LLM time on both token counts fits with "
-    f"R² = {LAT['reg_r2']:.2f}). Decode reached {HW['bandwidth_utilisation_pct']:.0f}% of the memory-bandwidth ceiling "
+    f"{LAT['exchange_rate']:.0f} input tokens. Decode reached {HW['bandwidth_utilisation_pct']:.0f}% of the memory-bandwidth ceiling "
     f"of {HW['decode_ceiling_tok_s']:.0f} tokens/s ({HW['bandwidth_gb_s']:.0f} GB/s ÷ {HW['model_gb']:.1f} GB of "
     "weights), as expected for a bandwidth-bound phase. Long prompts slowed every output token "
     f"({CTX['long']['ms_per_output_token']:.1f} vs {CTX['short']['ms_per_output_token']:.1f} ms), because each decode "
@@ -255,8 +254,7 @@ s.append(P("6. Conclusion", h1))
 s.append(P(
     f"Adaptive retrieval is the clear win: {red(v0, v1, 'input_tokens'):.0f}% fewer input tokens, "
     f"{v0['latency_s'] / v1['latency_s']:.0f} times lower latency and better abstention at equal correctness. A fixed "
-    "output budget saves decode time but costs completeness. The study also contributes a phase-aware way to choose "
-    "token optimisations and a simple method to measure the exchange rate on any deployment. <b>Limitations:</b> 40 "
+    "output budget saves decode time but costs completeness. <b>Limitations:</b> 40 "
     "questions from one domain; one 3B model on one fanless laptop (cooling breaks between runs); a judge slightly "
     "lenient on multi-part answers; τ tuned on the test set. <b>Future work:</b> question-adaptive output budgets, "
     "history compaction, a citation-gated cascade, and the exchange rate on a server GPU."))
