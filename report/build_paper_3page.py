@@ -227,7 +227,7 @@ s.append(P(
     f"{CV['V1']['cv_correct_pct']:.0f}%), so tuning on the test set is optimistic by up to "
     f"{max(CV['V3']['optimism_points'], CV['V1']['optimism_points']):.0f} points. The judge agreed with the blind "
     f"manual grades on {J['agree']} of {J['n']} answers (Cohen’s κ = {J['kappa']:.2f}); both disagreements were "
-    "multi-part answers it accepted despite a missing step."))
+    "multi-part answers missing a step."))
 
 # ---------- 5 ----------
 s.append(P("5. Discussion", h1))
@@ -235,8 +235,7 @@ s.append(P(
     "<b>RQ1.</b> Input tokens can be cut by an order of magnitude without losing correctness: dropping low-scoring "
     "passages helped rather than hurt, in line with [4, 5]. Output is harder: the fixed three-sentence contract left out "
     f"secondary facts, so T4 failed the margin; the oracle, which uses the same contract, scored only "
-    f"{vo['correct_pct']:.0f}%, pointing to the contract, not retrieval, as the limit. With long contexts the 3B model "
-    "also ignored the citation instruction. <b>RQ2.</b> The two token types cost differently, but the ratio depends on "
+    f"{vo['correct_pct']:.0f}%, pointing to the contract, not retrieval, as the limit. <b>RQ2.</b> The two token types cost differently, but the ratio depends on "
     "the hardware: on this laptop GPU prefill is slow, so the baseline prompt dominated latency (first token after "
     f"{v0['ttft_s']:.1f} of {v0['latency_s']:.1f} s) and T1 saved far more time than T4. Where prefill is much faster "
     "relative to decode, as on data-centre accelerators [1, 2], output reduction gains weight, so the exchange rate "
@@ -246,8 +245,8 @@ s.append(P(
     f"At {num(SC['queries_per_day'])} queries a day, V3’s measured "
     f"savings would amount to about {SC['input_tokens_saved_per_day'] / 1e6:,.0f} million input tokens and "
     f"{SC['machine_hours_saved_per_day']:,.0f} machine-hours per day on this hardware"
-    + (f" (about {SC['api_cost_saved_per_day']:,.0f} USD at DeepSeek-Flash peak list prices)"
-       if "api_cost_saved_per_day" in SC else "") + " (a projection from measured means)."))
+    + " (a projection from measured means" + (f"; about {SC['api_cost_saved_per_day']:,.0f} USD at DeepSeek-Flash "
+       "peak list prices" if "api_cost_saved_per_day" in SC else "") + ")."))
 
 # ---------- 6 ----------
 s.append(P("6. Conclusion", h1))
