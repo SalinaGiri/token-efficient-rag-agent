@@ -81,12 +81,13 @@ tests/test_pipeline.py offline test with fake models (also runs on GitHub Action
 ## Setup (macOS, Apple Silicon)
 
 1. Install **Ollama** from ollama.com and **Python 3.11+** from python.org.
-2. Pull the model under test (and a judge model of a *different* family if you judge locally):
+2. Pull the model under test. This study used Qwen2.5-3B-Instruct (Q4_K_M), pulled from ModelScope because
+   the Ollama registry was unreachable from the test network:
    ```
-   ollama pull llama3.1:8b
-   ollama pull qwen2.5:7b
+   ollama pull modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M
    ```
-   Put the exact names in `config.py` (`LLM_MODEL`, `JUDGE["model"]`).
+   Put the exact name in `config.py` (`LLM_MODEL`). The judge is DeepSeek (`deepseek-chat`) through its
+   OpenAI-compatible API, a different model family from the model under test.
 3. Create a virtual environment **inside the project folder** (deleting the folder later removes everything):
    ```
    cd token-efficient-rag-agent
@@ -111,8 +112,12 @@ Keep the Mac plugged in and close other heavy apps while measuring.
 | 7 | `python run.py analyze` | Prints all results; writes `results/` files and `report/results.csv`. Check `results/regressions.csv`. |
 | 8 | `python run.py report` | Rebuilds the figures and both PDFs in `report/`. |
 
-To use an API judge instead of a local one, set `JUDGE["backend"] = "openai"`, fill `base_url` and `model`,
-and export your key: `export JUDGE_API_KEY=...`.
+The judge key is read from the `JUDGE_API_KEY` environment variable and never stored in the project. Type it
+in only for the session that needs it, so it stays out of files and shell history:
+```
+read -rs "JUDGE_API_KEY?API key: "; export JUDGE_API_KEY; echo     # zsh; in bash: read -rsp "API key: " JUDGE_API_KEY
+```
+To judge with a local model instead, set `JUDGE["backend"] = "ollama"` and a model of a different family.
 
 ## Outputs
 
