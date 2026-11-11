@@ -1,11 +1,10 @@
 # Fewer, Better Tokens
 
-[![tests](https://github.com/SalinaGiri/token-efficient-rag-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/SalinaGiri/token-efficient-rag-agent/actions/workflows/tests.yml)
-
 **Can a documentation chatbot use far fewer tokens and still give correct, cited answers?**
 This project measures exactly that, on a real laptop, with a real local model.
 
 📄 **The 3-page report:** [`report/Fewer_Better_Tokens_3page.pdf`](report/Fewer_Better_Tokens_3page.pdf)
+(3 pages of text, then references and Appendix A: a one-page record of every run, check and number.)
 
 Technical exercise for internship 2026-INT-298 (*Token-Efficient AI-Agent Design for an Operational Knowledge Hub*).
 
@@ -104,7 +103,6 @@ data/raw/               a dated copy of the documentation, so results can be rep
 src/                    the chatbot and the evaluation code (see below)
 config.py               all settings in one place (model, TAU, repeats, ...)
 run.py                  one command for every step
-tests/                  an offline test with fake models (also runs automatically on GitHub)
 ```
 
 Inside `src/`: `corpus.py` downloads and splits the documentation, `retrieval.py` finds and reranks passages,
@@ -124,7 +122,6 @@ ollama pull modelscope.cn/Qwen/Qwen2.5-3B-Instruct-GGUF:Q4_K_M
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python -m tests.test_pipeline        # should end with ALL TESTS PASSED
 ```
 
 **3. Run the steps in order.** Keep the Mac plugged in and close heavy apps while measuring.
